@@ -61,6 +61,8 @@ export default function Footer() {
               color="inherit"
               size="large"
               href="https://github.com/Egotzilla/web-project02"
+              target="_blank"
+              rel="noopener noreferrer"
               aria-label="GitHub"
               sx={{ alignSelf: 'center' }}
             >
