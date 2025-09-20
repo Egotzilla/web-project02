@@ -4,6 +4,14 @@ import * as React from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
 
+// Create theme context
+const ThemeModeContext = React.createContext({
+  mode: 'light',
+  setMode: () => {},
+});
+
+export const useThemeMode = () => React.useContext(ThemeModeContext);
+
 // Create a basic Material-UI theme
 const theme = createTheme({
   palette: {
@@ -93,14 +101,33 @@ const darkTheme = createTheme({
 
 export default function AppTheme({ children, ...props }) {
   const [mode, setMode] = React.useState('light');
+  const [isHydrated, setIsHydrated] = React.useState(false);
   
-  // You can extend this to include mode switching logic
-  const selectedTheme = mode === 'dark' ? darkTheme : theme;
+  // Handle hydration to prevent SSR/client mismatch
+  React.useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+  
+  // Determine theme based on mode
+  const getTheme = React.useCallback((themeMode) => {
+    if (themeMode === 'system' && isHydrated) {
+      // Only check system preference after hydration
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      return prefersDark ? darkTheme : theme;
+    }
+    return themeMode === 'dark' ? darkTheme : theme;
+  }, [isHydrated]);
+
+  const selectedTheme = getTheme(mode);
 
   return (
-    <ThemeProvider theme={selectedTheme}>
-      <CssBaseline />
-      {children}
-    </ThemeProvider>
+    <div suppressHydrationWarning>
+      <ThemeModeContext.Provider value={{ mode, setMode }}>
+        <ThemeProvider theme={selectedTheme}>
+          <CssBaseline />
+          {children}
+        </ThemeProvider>
+      </ThemeModeContext.Provider>
+    </div>
   );
 }

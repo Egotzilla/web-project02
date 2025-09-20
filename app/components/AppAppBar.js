@@ -14,44 +14,72 @@ import Drawer from '@mui/material/Drawer';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import ColorModeIconDropdown from './ColorModeIconDropdown';
+import { useThemeMode } from './AppTheme';
 import Image from 'next/image';
 
-const StyledToolbar = styled(Toolbar)(({ theme }) => ({
+const StyledToolbar = styled(Toolbar, {
+  shouldForwardProp: (prop) => prop !== 'isHydrated',
+})(({ theme, isHydrated }) => ({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
   flexShrink: 0,
   borderRadius: `calc(${theme.shape.borderRadius}px + 8px)`,
-  backdropFilter: 'blur(24px)',
+  backdropFilter: isHydrated ? 'blur(24px)' : 'none',
   border: '1px solid',
-  borderColor: (theme.vars || theme).palette.divider,
-  backgroundColor: theme.vars
-    ? `rgba(${theme.vars.palette.background.defaultChannel} / 0.4)`
-    : alpha(theme.palette.background.default, 0.4),
-  boxShadow: (theme.vars || theme).shadows[1],
+  borderColor: theme.palette.divider,
+  backgroundColor: isHydrated 
+    ? (theme.vars
+        ? `rgba(${theme.vars.palette.background.defaultChannel} / 0.4)`
+        : alpha(theme.palette.background.default, 0.4))
+    : theme.palette.background.default,
+  boxShadow: isHydrated ? theme.shadows[1] : 'none',
   padding: '8px 12px',
 }));
 
 export default function AppAppBar() {
   const [open, setOpen] = React.useState(false);
+  const [isHydrated, setIsHydrated] = React.useState(false);
+
+  // Handle hydration to prevent SSR/client mismatch
+  React.useEffect(() => {
+    setIsHydrated(true);
+  }, []);
 
   const toggleDrawer = (newOpen) => () => {
     setOpen(newOpen);
   };
 
+  const scrollToFooter = () => {
+    const footerElement = document.getElementById('footer-github');
+    if (footerElement) {
+      footerElement.scrollIntoView({ behavior: 'smooth' });
+    }
+    setOpen(false); // Close mobile drawer after clicking
+  };
+
+  const scrollToSearch = () => {
+    const searchElement = document.getElementById('search-section');
+    if (searchElement) {
+      searchElement.scrollIntoView({ behavior: 'smooth' });
+    }
+    setOpen(false); // Close mobile drawer after clicking
+  };
+
   return (
-    <AppBar
-      position="fixed"
-      enableColorOnDark
-      sx={{
-        boxShadow: 0,
-        bgcolor: 'transparent',
-        backgroundImage: 'none',
-        mt: 'calc(var(--template-frame-height, 0px) + 28px)',
-      }}
-    >
+    <div suppressHydrationWarning>
+      <AppBar
+        position="fixed"
+        enableColorOnDark={isHydrated}
+        sx={{
+          boxShadow: 0,
+          bgcolor: 'transparent',
+          backgroundImage: 'none',
+          mt: isHydrated ? 'calc(var(--template-frame-height, 0px) + 28px)' : '28px',
+        }}
+      >
       <Container maxWidth="lg">
-        <StyledToolbar variant="dense" disableGutters>
+        <StyledToolbar variant="dense" disableGutters isHydrated={isHydrated}>
           <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', px: 0 }}>
             <Image 
               src="/favicon.ico" 
@@ -61,7 +89,12 @@ export default function AppAppBar() {
               style={{ marginRight: '8px' }}
             />
             <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
-              <Button variant="text" color="info" size="small">
+              <Button 
+                variant="text" 
+                color="info" 
+                size="small"
+                onClick={scrollToSearch}
+              >
                 Search Cruises
               </Button>
               <Button variant="text" color="info" size="small">
@@ -73,11 +106,14 @@ export default function AppAppBar() {
               <Button variant="text" color="info" size="small">
                 Deals
               </Button>
-              <Button variant="text" color="info" size="small" sx={{ minWidth: 0 }}>
+              <Button 
+                variant="text" 
+                color="info" 
+                size="small" 
+                sx={{ minWidth: 0 }}
+                onClick={scrollToFooter}
+              >
                 About
-              </Button>
-              <Button variant="text" color="info" size="small" sx={{ minWidth: 0 }}>
-                Contact
               </Button>
             </Box>
           </Box>
@@ -122,11 +158,11 @@ export default function AppAppBar() {
                     <CloseRoundedIcon />
                   </IconButton>
                 </Box>
-                <MenuItem>Search Cruises</MenuItem>
+                <MenuItem onClick={scrollToSearch}>Search Cruises</MenuItem>
                 <MenuItem>Destinations</MenuItem>
                 <MenuItem>Cruise Lines</MenuItem>
                 <MenuItem>Deals</MenuItem>
-                <MenuItem>About</MenuItem>
+                <MenuItem onClick={scrollToFooter}>About</MenuItem>
                 <MenuItem>Contact</MenuItem>
                 <Divider sx={{ my: 3 }} />
                 <MenuItem>
@@ -145,5 +181,6 @@ export default function AppAppBar() {
         </StyledToolbar>
       </Container>
     </AppBar>
+    </div>
   );
 }

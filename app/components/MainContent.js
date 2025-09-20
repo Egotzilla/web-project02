@@ -160,7 +160,7 @@ export function Search() {
     <FormControl sx={{ width: { xs: '100%', md: '25ch' } }} variant="outlined">
       <OutlinedInput
         size="small"
-        id="search"
+        id="search-bar"
         placeholder="Search cruises…"
         sx={{ flexGrow: 1 }}
         startAdornment={
@@ -193,13 +193,13 @@ export default function MainContent() {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      <div>
+      <div id="search-section">
         <Typography variant="h1" gutterBottom>
           Featured Cruises
         </Typography>
         <Typography>Discover amazing cruise destinations and exclusive deals from Cruise Navigator</Typography>
       </div>
-      <Box
+      <Box 
         sx={{
           display: { xs: 'flex', sm: 'none' },
           flexDirection: 'row',

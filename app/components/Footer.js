@@ -32,6 +32,7 @@ export default function Footer() {
     <React.Fragment>
       <Divider />
       <Container
+        id="footer-github"
         sx={{
           display: 'flex',
           flexDirection: 'column',
@@ -41,7 +42,32 @@ export default function Footer() {
           textAlign: { sm: 'center', md: 'left' },
         }}
       >
-        {/* Footer content removed */}
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+
+            width: '100%',
+            borderColor: 'divider',
+          }}
+        >
+          <Stack
+            direction="row"
+            spacing={1}
+            useFlexGap
+            sx={{ justifyContent: 'center', color: 'text.secondary' }}
+          >
+            <IconButton
+              color="inherit"
+              size="large"
+              href="https://github.com/Egotzilla/web-project02"
+              aria-label="GitHub"
+              sx={{ alignSelf: 'center' }}
+            >
+              <GitHubIcon fontSize="large" />
+            </IconButton>
+          </Stack>
+        </Box>
       </Container>
     </React.Fragment>
   );

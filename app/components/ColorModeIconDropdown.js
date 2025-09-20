@@ -8,11 +8,12 @@ import MenuItem from '@mui/material/MenuItem';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import SettingsBrightnessIcon from '@mui/icons-material/SettingsBrightness';
+import { useThemeMode } from './AppTheme';
 
 export default function ColorModeIconDropdown({ size = 'small' }) {
   const theme = useTheme();
+  const { mode, setMode } = useThemeMode();
   const [anchorEl, setAnchorEl] = React.useState(null);
-  const [mode, setMode] = React.useState('system');
   const open = Boolean(anchorEl);
 
   const handleClick = (event) => {
@@ -26,16 +27,14 @@ export default function ColorModeIconDropdown({ size = 'small' }) {
   const handleModeChange = (newMode) => {
     setMode(newMode);
     handleClose();
-    // Here you would typically update your theme context
-    console.log('Color mode changed to:', newMode);
   };
 
   const getIcon = () => {
     switch (mode) {
       case 'light':
-        return <Brightness7Icon />;
-      case 'dark':
         return <Brightness4Icon />;
+      case 'dark':
+        return <Brightness7Icon />;
       default:
         return <SettingsBrightnessIcon />;
     }
