@@ -3,6 +3,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 import Container from '@mui/material/Container';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import Typography from '@mui/material/Typography';
 import AppTheme from './components/AppTheme';
 import AppAppBar from './components/AppAppBar';
 import MainContent from './components/MainContent';
@@ -23,7 +24,7 @@ export default function CruiseNavigator(props) {
         <MainContent />
         {/* <Latest /> */}
         
-        {/* Admin Section */}
+        {/* Admin Access */}
         <Box 
           sx={{ 
             display: 'flex', 
@@ -34,10 +35,10 @@ export default function CruiseNavigator(props) {
             borderColor: 'divider'
           }}
         >
-          <Link href="/booking" passHref>
+          <Link href="/admin" passHref>
             <Button 
               variant="outlined" 
-              color="primary"
+              color="secondary"
               size="large"
               sx={{ 
                 textTransform: 'none',
@@ -45,7 +46,7 @@ export default function CruiseNavigator(props) {
                 py: 1.5
               }}
             >
-              Manage Bookings
+              Admin Dashboard
             </Button>
           </Link>
         </Box>

@@ -1,5 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { AuthProvider } from "../context/AuthContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -12,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Cruise Navigator - Your Gateway to Amazing Cruise Adventures",
-  description: "Discover and book the perfect cruise with Cruise Navigator. Explore Caribbean, Mediterranean, Alaska, and luxury cruise options with exclusive deals and expert service.",
+  title: "Bangkok River Cruise - Discover, Dine & Relax",
+  description: "Experience the magic of Bangkok from the water. Book your unforgettable journey through Thailand's iconic waterways on our luxury river cruise.",
 };
 
 export default function RootLayout({ children }) {
@@ -22,7 +23,9 @@ export default function RootLayout({ children }) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

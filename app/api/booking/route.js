@@ -1,6 +1,6 @@
 import connectDB from "../../../lib/mongodb";
 import Booking from "../../../models/booking";
-import Customer from "../../../models/customer";
+import User from "../../../models/user";
 
 export async function GET(req) {
   try {
@@ -27,10 +27,10 @@ export async function POST(req) {
       return new Response(JSON.stringify({ error: "Missing required fields" }), { status: 400 });
     }
 
-    // Check if customer exists
-    const customer = await Customer.findById(customerId);
-    if (!customer) {
-      return new Response(JSON.stringify({ error: "Customer not found" }), { status: 404 });
+    // Check if user exists
+    const user = await User.findById(customerId);
+    if (!user) {
+      return new Response(JSON.stringify({ error: "User not found" }), { status: 404 });
     }
 
     const booking = await Booking.create({

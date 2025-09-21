@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const bookingSchema = new mongoose.Schema(
   {
-    customerId: { type: mongoose.Schema.Types.ObjectId, ref: "Customer", required: true },
+    customerId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     cruiseDate: { type: Date, required: true },
     numberOfGuests: { type: Number, required: true },
   },

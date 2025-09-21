@@ -15,65 +15,109 @@ import Typography from '@mui/material/Typography';
 import FormControl from '@mui/material/FormControl';
 import InputAdornment from '@mui/material/InputAdornment';
 import OutlinedInput from '@mui/material/OutlinedInput';
+import Button from '@mui/material/Button';
+import Rating from '@mui/material/Rating';
+import Accordion from '@mui/material/Accordion';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import AccordionDetails from '@mui/material/AccordionDetails';
+import TextField from '@mui/material/TextField';
 import { styled } from '@mui/material/styles';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import RssFeedRoundedIcon from '@mui/icons-material/RssFeedRounded';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import GroupIcon from '@mui/icons-material/Group';
+import LanguageIcon from '@mui/icons-material/Language';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import StarIcon from '@mui/icons-material/Star';
+import { useAuth } from '../../context/AuthContext';
+import { useRouter } from 'next/navigation';
+import Alert from '@mui/material/Alert';
+import Link from 'next/link';
 
-const cardData = [
+const cruiseData = {
+  img: 'https://picsum.photos/800/450?random=1',
+  tag: 'Bangkok',
+  title: 'Chao Phraya Princess Cruise in Bangkok',
+  rating: 4.5,
+  reviews: 16500,
+  booked: 400000,
+  duration: '1hr 30min - 5hr 30min',
+  price: 27.99,
+  currency: 'US$',
+  location: 'Bangkok',
+  features: ['English', 'Join in group', 'Meet at location'],
+  highlights: [
+    'View historic Bangkok landmarks, such as Wat Kanlaya, Wat Arun and Grand Palace, on a grand cruise ride',
+    'Feast on a 2-hour dinner buffet, a fusion of different cuisines from all over the world'
+  ],
+  gallery: [
+    'https://picsum.photos/300/200?random=1',
+    'https://picsum.photos/300/200?random=2',
+    'https://picsum.photos/300/200?random=3',
+    'https://picsum.photos/300/200?random=4',
+    'https://picsum.photos/300/200?random=5',
+  ]
+};
+
+const packageOptions = [
   {
-    img: 'https://picsum.photos/800/450?random=1',
-    tag: 'Caribbean',
-    title: 'Discover the Ultimate Caribbean Cruise Experience',
-    description:
-      'Sail through crystal-clear waters and visit stunning tropical islands. Experience world-class dining, entertainment, and endless activities aboard our luxury Caribbean cruises.',
-    authors: [
-      { name: 'Captain Smith', avatar: '/static/images/avatar/1.jpg' },
-      { name: 'Maria Lopez', avatar: '/static/images/avatar/2.jpg' },
-    ],
+    id: 1,
+    name: 'SUNSET Cruise Ticket at Asiatique Pier',
+    time: '17:00-18:30',
+    description: 'Cruising Time: 17:00-18:30',
+    selected: true
   },
   {
-    img: 'https://picsum.photos/800/450?random=2',
-    tag: 'Mediterranean',
-    title: 'Explore Ancient Wonders on Mediterranean Cruises',
-    description:
-      'Journey through history as you visit iconic ports like Rome, Barcelona, and Santorini. Our Mediterranean cruises offer the perfect blend of culture, cuisine, and breathtaking scenery.',
-    authors: [{ name: 'Sofia Romano', avatar: '/static/images/avatar/6.jpg' }],
+    id: 2,
+    name: 'Dinner Cruise Ticket at Asiatique Pier',
+    time: '19:30-21:30',
+    description: 'Cruising Time: 19:30-21:30',
+    selected: false
   },
   {
-    img: 'https://picsum.photos/800/450?random=3',
-    tag: 'Alaska',
-    title: 'Witness the Majesty of Alaska\'s Wilderness',
-    description:
-      'Experience glaciers, wildlife, and stunning landscapes on our Alaska cruises. From whale watching to scenic cruising through fjords, discover the last frontier in comfort.',
-    authors: [{ name: 'John Alaska', avatar: '/static/images/avatar/7.jpg' }],
+    id: 3,
+    name: 'Dinner Cruise Ticket at ICONSIAM Pier',
+    time: '19:30-21:30',
+    description: 'Cruising Time: 19:30-21:30',
+    selected: false
+  }
+];
+
+const packageDetails = [
+  'Book now for today',
+  'Free cancellation (24 hours notice)',
+  'Valid on the selected date',
+  'Instant confirmation'
+];
+
+const sampleReviews = [
+  {
+    id: 1,
+    name: 'Sarah Johnson',
+    rating: 5,
+    date: '2 days ago',
+    comment: 'Amazing experience! The sunset views were breathtaking and the food was delicious. Highly recommend!',
+    avatar: 'https://picsum.photos/40/40?random=10'
   },
   {
-    img: 'https://picsum.photos/800/450?random=4',
-    tag: 'Luxury',
-    title: 'Indulge in Our Premium Luxury Cruise Collection',
-    description:
-      'Experience the finest in cruise travel with our luxury fleet. Enjoy butler service, gourmet dining, and exclusive amenities designed for the most discerning travelers.',
-    authors: [{ name: 'Isabella Grace', avatar: '/static/images/avatar/3.jpg' }],
+    id: 2,
+    name: 'Michael Chen',
+    rating: 4,
+    date: '1 week ago',
+    comment: 'Great cruise with beautiful views of Bangkok. The buffet had good variety. Staff was friendly and helpful.',
+    avatar: 'https://picsum.photos/40/40?random=11'
   },
   {
-    img: 'https://picsum.photos/800/450?random=45',
-    tag: 'Family',
-    title: 'Create Unforgettable Family Memories at Sea',
-    description:
-      'Our family-friendly cruises offer something for everyone. From kids\' clubs and water parks to teen lounges and family dining, make memories that will last a lifetime.',
-    authors: [
-      { name: 'David Chen', avatar: '/static/images/avatar/4.jpg' },
-      { name: 'Sarah Johnson', avatar: '/static/images/avatar/5.jpg' },
-    ],
-  },
-  {
-    img: 'https://picsum.photos/800/450?random=6',
-    tag: 'Adventure',
-    title: 'Embark on Thrilling Adventure Shore Excursions',
-    description:
-      'Take your cruise experience to the next level with our adventure excursions. From zip-lining in tropical forests to diving with marine life, adventure awaits at every port.',
-    authors: [{ name: 'Mike Adventure', avatar: '/static/images/avatar/2.jpg' }],
-  },
+    id: 3,
+    name: 'Emma Rodriguez',
+    rating: 5,
+    date: '2 weeks ago',
+    comment: 'Perfect romantic evening! The city lights were magical. Will definitely book again for special occasions.',
+    avatar: 'https://picsum.photos/40/40?random=12'
+  }
 ];
 
 const SyledCard = styled(Card)(({ theme }) => ({
@@ -161,7 +205,7 @@ export function Search() {
       <OutlinedInput
         size="small"
         id="search-bar"
-        placeholder="Search cruises…"
+        placeholder="Search Bangkok cruise experiences…"
         sx={{ flexGrow: 1 }}
         startAdornment={
           <InputAdornment position="start" sx={{ color: 'text.primary' }}>
@@ -177,318 +221,415 @@ export function Search() {
 }
 
 export default function MainContent() {
-  const [focusedCardIndex, setFocusedCardIndex] = React.useState(null);
+  const [selectedPackage, setSelectedPackage] = React.useState(1);
+  const [selectedDate, setSelectedDate] = React.useState('');
+  const [numberOfGuests, setNumberOfGuests] = React.useState(1);
+  const [bookingLoading, setBookingLoading] = React.useState(false);
+  const [bookingSuccess, setBookingSuccess] = React.useState('');
+  const [bookingError, setBookingError] = React.useState('');
+  const [reviews, setReviews] = React.useState([]);
+  const [reviewsLoading, setReviewsLoading] = React.useState(true);
+  
+  const { user } = useAuth();
+  const router = useRouter();
+  
+  // Fetch real reviews from the API
+  React.useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        setReviewsLoading(true);
+        const response = await fetch('/api/review');
+        const data = await response.json();
+        
+        // Get the 3 most recent reviews
+        const recentReviews = data.slice(0, 3);
+        setReviews(recentReviews);
+      } catch (error) {
+        console.error('Failed to fetch reviews:', error);
+      } finally {
+        setReviewsLoading(false);
+      }
+    };
+    
+    fetchReviews();
+  }, []);
 
-  const handleFocus = (index) => {
-    setFocusedCardIndex(index);
-  };
+  const handleBooking = async () => {
+    if (!user) {
+      setBookingError('Please log in to make a booking');
+      setTimeout(() => router.push('/login'), 2000);
+      return;
+    }
 
-  const handleBlur = () => {
-    setFocusedCardIndex(null);
-  };
+    if (!selectedDate) {
+      setBookingError('Please select a date for your cruise');
+      return;
+    }
 
-  const handleClick = () => {
-    console.info('You clicked the filter chip.');
+    if (numberOfGuests < 1) {
+      setBookingError('Please select at least 1 guest');
+      return;
+    }
+
+    setBookingLoading(true);
+    setBookingError('');
+    setBookingSuccess('');
+
+    try {
+      const response = await fetch('/api/booking', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          customerId: user._id,
+          cruiseDate: selectedDate,
+          numberOfGuests: numberOfGuests,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setBookingSuccess('Booking confirmed! Your cruise is reserved.');
+        // Reset form
+        setSelectedDate('');
+        setNumberOfGuests(1);
+        setTimeout(() => {
+          setBookingSuccess('');
+          router.push('/profile');
+        }, 3000);
+      } else {
+        setBookingError(data.error || 'Failed to create booking');
+      }
+    } catch (error) {
+      setBookingError('Failed to create booking. Please try again.');
+    } finally {
+      setBookingLoading(false);
+    }
   };
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      <div id="search-section">
-        <Typography variant="h1" gutterBottom>
-          Featured Cruises
+      {/* Header Section */}
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h3" gutterBottom>
+          {cruiseData.title}
         </Typography>
-        <Typography>Discover amazing cruise destinations and exclusive deals from Cruise Navigator</Typography>
-      </div>
-      <Box 
-        sx={{
-          display: { xs: 'flex', sm: 'none' },
-          flexDirection: 'row',
-          gap: 1,
-          width: { xs: '100%', md: 'fit-content' },
-          overflow: 'auto',
-        }}
-      >
-        <Search />
-        <IconButton size="small" aria-label="RSS feed">
-          <RssFeedRoundedIcon />
-        </IconButton>
-      </Box>
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: { xs: 'column-reverse', md: 'row' },
-          width: '100%',
-          justifyContent: 'space-between',
-          alignItems: { xs: 'start', md: 'center' },
-          gap: 4,
-          overflow: 'auto',
-        }}
-      >
-        <Box
-          sx={{
-            display: 'inline-flex',
-            flexDirection: 'row',
-            gap: 3,
-            overflow: 'auto',
-          }}
-        >
-          <Chip onClick={handleClick} size="medium" label="All destinations" />
-          <Chip
-            onClick={handleClick}
-            size="medium"
-            label="Caribbean"
-            sx={{
-              backgroundColor: 'transparent',
-              border: 'none',
-            }}
-          />
-          <Chip
-            onClick={handleClick}
-            size="medium"
-            label="Mediterranean"
-            sx={{
-              backgroundColor: 'transparent',
-              border: 'none',
-            }}
-          />
-          <Chip
-            onClick={handleClick}
-            size="medium"
-            label="Alaska"
-            sx={{
-              backgroundColor: 'transparent',
-              border: 'none',
-            }}
-          />
-          <Chip
-            onClick={handleClick}
-            size="medium"
-            label="Luxury"
-            sx={{
-              backgroundColor: 'transparent',
-              border: 'none',
-            }}
+        
+        {/* Feature Tags */}
+        <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
+          {cruiseData.features.map((feature, index) => (
+            <Chip 
+              key={index} 
+              label={feature} 
+              size="small" 
+              variant="outlined"
+              icon={feature === 'English' ? <LanguageIcon /> : feature === 'Join in group' ? <GroupIcon /> : <LocationOnIcon />}
+            />
+          ))}
+          <Chip 
+            label={cruiseData.duration} 
+            size="small" 
+            variant="outlined"
+            icon={<AccessTimeIcon />}
           />
         </Box>
-        <Box
-          sx={{
-            display: { xs: 'none', sm: 'flex' },
-            flexDirection: 'row',
-            gap: 1,
-            width: { xs: '100%', md: 'fit-content' },
-            overflow: 'auto',
-          }}
-        >
-          <Search />
-          <IconButton size="small" aria-label="RSS feed">
-            <RssFeedRoundedIcon />
+
+        {/* Rating and Stats */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, mb: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Rating value={cruiseData.rating} readOnly size="small" />
+            <Typography variant="body2">
+              {cruiseData.rating}/5 ({cruiseData.reviews.toLocaleString()} reviews)
+            </Typography>
+          </Box>
+          <Typography variant="body2" color="text.secondary">
+            {cruiseData.booked.toLocaleString()}+ booked
+          </Typography>
+          <Chip label={cruiseData.location} size="small" />
+          <IconButton size="small">
+            <FavoriteBorderIcon />
           </IconButton>
         </Box>
       </Box>
-      <Grid container spacing={2} columns={12}>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <SyledCard
-            variant="outlined"
-            onFocus={() => handleFocus(0)}
-            onBlur={handleBlur}
-            tabIndex={0}
-            className={focusedCardIndex === 0 ? 'Mui-focused' : ''}
-          >
+
+      <Grid container spacing={4}>
+        {/* Left Column - Images and Highlights */}
+        <Grid item xs={12} md={8}>
+          {/* Main Image */}
+          <Box sx={{ position: 'relative', mb: 2 }}>
             <CardMedia
               component="img"
-              alt="green iguana"
-              image={cardData[0].img}
+              alt="Bangkok River Cruise"
+              image={cruiseData.img}
               sx={{
-                aspectRatio: '16 / 9',
-                borderBottom: '1px solid',
-                borderColor: 'divider',
+                width: '100%',
+                height: 400,
+                borderRadius: 2,
+                objectFit: 'cover'
               }}
             />
-            <SyledCardContent>
-              <Typography gutterBottom variant="caption" component="div">
-                {cardData[0].tag}
-              </Typography>
-              <Typography gutterBottom variant="h6" component="div">
-                {cardData[0].title}
-              </Typography>
-              <StyledTypography variant="body2" color="text.secondary" gutterBottom>
-                {cardData[0].description}
-              </StyledTypography>
-            </SyledCardContent>
-            <Author authors={cardData[0].authors} />
-          </SyledCard>
-        </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <SyledCard
-            variant="outlined"
-            onFocus={() => handleFocus(1)}
-            onBlur={handleBlur}
-            tabIndex={0}
-            className={focusedCardIndex === 1 ? 'Mui-focused' : ''}
-          >
-            <CardMedia
-              component="img"
-              alt="green iguana"
-              image={cardData[1].img}
-              aspect-ratio="16 / 9"
+            <IconButton
               sx={{
-                borderBottom: '1px solid',
-                borderColor: 'divider',
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                backgroundColor: 'rgba(0,0,0,0.6)',
+                color: 'white',
+                '&:hover': {
+                  backgroundColor: 'rgba(0,0,0,0.8)',
+                }
               }}
-            />
-            <SyledCardContent>
-              <Typography gutterBottom variant="caption" component="div">
-                {cardData[1].tag}
-              </Typography>
-              <Typography gutterBottom variant="h6" component="div">
-                {cardData[1].title}
-              </Typography>
-              <StyledTypography variant="body2" color="text.secondary" gutterBottom>
-                {cardData[1].description}
-              </StyledTypography>
-            </SyledCardContent>
-            <Author authors={cardData[1].authors} />
-          </SyledCard>
-        </Grid>
-        <Grid size={{ xs: 12, md: 4 }}>
-          <SyledCard
-            variant="outlined"
-            onFocus={() => handleFocus(2)}
-            onBlur={handleBlur}
-            tabIndex={0}
-            className={focusedCardIndex === 2 ? 'Mui-focused' : ''}
-            sx={{ height: '100%' }}
-          >
-            <CardMedia
-              component="img"
-              alt="green iguana"
-              image={cardData[2].img}
-              sx={{
-                height: { sm: 'auto', md: '50%' },
-                aspectRatio: { sm: '16 / 9', md: '' },
-              }}
-            />
-            <SyledCardContent>
-              <Typography gutterBottom variant="caption" component="div">
-                {cardData[2].tag}
-              </Typography>
-              <Typography gutterBottom variant="h6" component="div">
-                {cardData[2].title}
-              </Typography>
-              <StyledTypography variant="body2" color="text.secondary" gutterBottom>
-                {cardData[2].description}
-              </StyledTypography>
-            </SyledCardContent>
-            <Author authors={cardData[2].authors} />
-          </SyledCard>
-        </Grid>
-        <Grid size={{ xs: 12, md: 4 }}>
-          <Box
-            sx={{ display: 'flex', flexDirection: 'column', gap: 2, height: '100%' }}
-          >
-            <SyledCard
-              variant="outlined"
-              onFocus={() => handleFocus(3)}
-              onBlur={handleBlur}
-              tabIndex={0}
-              className={focusedCardIndex === 3 ? 'Mui-focused' : ''}
-              sx={{ height: '100%' }}
             >
-              <SyledCardContent
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  height: '100%',
-                }}
-              >
-                <div>
-                  <Typography gutterBottom variant="caption" component="div">
-                    {cardData[3].tag}
-                  </Typography>
-                  <Typography gutterBottom variant="h6" component="div">
-                    {cardData[3].title}
-                  </Typography>
-                  <StyledTypography
-                    variant="body2"
-                    color="text.secondary"
-                    gutterBottom
-                  >
-                    {cardData[3].description}
-                  </StyledTypography>
-                </div>
-              </SyledCardContent>
-              <Author authors={cardData[3].authors} />
-            </SyledCard>
-            <SyledCard
-              variant="outlined"
-              onFocus={() => handleFocus(4)}
-              onBlur={handleBlur}
-              tabIndex={0}
-              className={focusedCardIndex === 4 ? 'Mui-focused' : ''}
-              sx={{ height: '100%' }}
-            >
-              <SyledCardContent
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  height: '100%',
-                }}
-              >
-                <div>
-                  <Typography gutterBottom variant="caption" component="div">
-                    {cardData[4].tag}
-                  </Typography>
-                  <Typography gutterBottom variant="h6" component="div">
-                    {cardData[4].title}
-                  </Typography>
-                  <StyledTypography
-                    variant="body2"
-                    color="text.secondary"
-                    gutterBottom
-                  >
-                    {cardData[4].description}
-                  </StyledTypography>
-                </div>
-              </SyledCardContent>
-              <Author authors={cardData[4].authors} />
-            </SyledCard>
+              <PlayArrowIcon fontSize="large" />
+            </IconButton>
           </Box>
+
+          {/* Image Gallery */}
+          <Box sx={{ display: 'flex', gap: 1, mb: 3, overflow: 'auto' }}>
+            {cruiseData.gallery.map((img, index) => (
+              <CardMedia
+                key={index}
+                component="img"
+                alt={`Gallery ${index + 1}`}
+                image={img}
+                sx={{
+                  width: 120,
+                  height: 80,
+                  borderRadius: 1,
+                  objectFit: 'cover',
+                  cursor: 'pointer'
+                }}
+              />
+            ))}
+            <Button variant="outlined" size="small" sx={{ minWidth: 120 }}>
+              Gallery
+            </Button>
+          </Box>
+
+          {/* Highlights */}
+          <Card sx={{ mb: 3, backgroundColor: '#f8f9fa' }}>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Cruise Highlights
+              </Typography>
+              {cruiseData.highlights.map((highlight, index) => (
+                <Typography key={index} variant="body2" sx={{ mb: 1, display: 'flex', alignItems: 'flex-start' }}>
+                  <StarIcon sx={{ color: 'orange', mr: 1, mt: 0.2, fontSize: 16 }} />
+                  {highlight}
+                </Typography>
+              ))}
+              <Button size="small" sx={{ mt: 1 }}>
+                See more
+              </Button>
+            </CardContent>
+          </Card>
         </Grid>
-        <Grid size={{ xs: 12, md: 4 }}>
-          <SyledCard
-            variant="outlined"
-            onFocus={() => handleFocus(5)}
-            onBlur={handleBlur}
-            tabIndex={0}
-            className={focusedCardIndex === 5 ? 'Mui-focused' : ''}
-            sx={{ height: '100%' }}
-          >
-            <CardMedia
-              component="img"
-              alt="green iguana"
-              image={cardData[5].img}
-              sx={{
-                height: { sm: 'auto', md: '50%' },
-                aspectRatio: { sm: '16 / 9', md: '' },
-              }}
-            />
-            <SyledCardContent>
-              <Typography gutterBottom variant="caption" component="div">
-                {cardData[5].tag}
-              </Typography>
-              <Typography gutterBottom variant="h6" component="div">
-                {cardData[5].title}
-              </Typography>
-              <StyledTypography variant="body2" color="text.secondary" gutterBottom>
-                {cardData[5].description}
-              </StyledTypography>
-            </SyledCardContent>
-            <Author authors={cardData[5].authors} />
-          </SyledCard>
+
+        {/* Right Column - Booking Section */}
+        <Grid item xs={12} md={4} id="booking">
+          <Card sx={{ position: 'sticky', top: 20 }}>
+            <CardContent>
+              {/* Price */}
+              <Box sx={{ textAlign: 'center', mb: 3 }}>
+                <Typography variant="h4" color="primary">
+                  {cruiseData.currency} {cruiseData.price}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                  per person
+                </Typography>
+              </Box>
+
+              {/* Package Options */}
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
+                  <Box sx={{ width: 4, height: 20, backgroundColor: 'orange', mr: 1 }} />
+                  Package options
+                </Typography>
+                
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="body2" gutterBottom>
+                    Please select a participation date
+                  </Typography>
+                  <TextField
+                    fullWidth
+                    type="date"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    size="small"
+                    InputLabelProps={{ shrink: true }}
+                    inputProps={{ min: new Date().toISOString().split('T')[0] }}
+                  />
+                </Box>
+
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="body2" gutterBottom>
+                    Number of Guests
+                  </Typography>
+                  <TextField
+                    fullWidth
+                    type="number"
+                    value={numberOfGuests}
+                    onChange={(e) => setNumberOfGuests(parseInt(e.target.value) || 1)}
+                    size="small"
+                    inputProps={{ min: 1, max: 20 }}
+                  />
+                </Box>
+
+                <Typography variant="body2" gutterBottom>
+                  Package type
+                </Typography>
+                {packageOptions.map((option) => (
+                  <Button
+                    key={option.id}
+                    fullWidth
+                    variant={selectedPackage === option.id ? "contained" : "outlined"}
+                    sx={{ 
+                      mb: 1, 
+                      textAlign: 'left',
+                      justifyContent: 'flex-start',
+                      backgroundColor: selectedPackage === option.id ? 'orange' : 'transparent',
+                      '&:hover': {
+                        backgroundColor: selectedPackage === option.id ? 'darkorange' : 'rgba(255,165,0,0.1)'
+                      }
+                    }}
+                    onClick={() => setSelectedPackage(option.id)}
+                  >
+                    <Box>
+                      <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                        {option.name}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {option.description}
+                      </Typography>
+                    </Box>
+                  </Button>
+                ))}
+
+                {/* Booking Messages */}
+                {bookingError && (
+                  <Alert severity="error" sx={{ mb: 2 }}>
+                    {bookingError}
+                  </Alert>
+                )}
+
+                {bookingSuccess && (
+                  <Alert severity="success" sx={{ mb: 2 }}>
+                    {bookingSuccess}
+                  </Alert>
+                )}
+
+                {/* Confirm Booking Button */}
+                <Button
+                  fullWidth
+                  variant="contained"
+                  size="large"
+                  disabled={bookingLoading || !selectedDate}
+                  onClick={handleBooking}
+                  sx={{ 
+                    mt: 2, 
+                    backgroundColor: 'green', 
+                    '&:hover': { backgroundColor: 'darkgreen' },
+                    '&:disabled': { backgroundColor: 'grey.300' }
+                  }}
+                >
+                  {bookingLoading ? 'Confirming Booking...' : 'Confirm Booking'}
+                </Button>
+              </Box>
+
+              {/* Package Details */}
+              <Accordion>
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                  <Typography variant="body2">Package details</Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    {packageDetails.map((detail, index) => (
+                      <Chip 
+                        key={index} 
+                        label={detail} 
+                        size="small" 
+                        variant="outlined"
+                        sx={{ alignSelf: 'flex-start' }}
+                      />
+                    ))}
+                  </Box>
+                </AccordionDetails>
+              </Accordion>
+
+              {/* Itinerary */}
+              <Accordion>
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                  <Typography variant="body2">Itinerary</Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <AccessTimeIcon fontSize="small" />
+                    <Typography variant="body2">
+                      From 16:00 • Departure
+                    </Typography>
+                  </Box>
+                </AccordionDetails>
+              </Accordion>
+            </CardContent>
+          </Card>
         </Grid>
       </Grid>
+
+      {/* Customer Reviews */}
+      <Box sx={{ mt: 4 }}>
+        <Typography variant="h5" gutterBottom>
+          Customer Reviews
+        </Typography>
+        {reviewsLoading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+            <Typography>Loading reviews...</Typography>
+          </Box>
+        ) : reviews.length > 0 ? (
+          <Grid container spacing={2}>
+            {reviews.map((review) => (
+              <Grid item xs={12} md={4} key={review._id}>
+                <Card>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                      <Avatar sx={{ mr: 2, bgcolor: 'primary.main' }}>
+                        {review.customerId?.name ? review.customerId.name.charAt(0).toUpperCase() : '?'}
+                      </Avatar>
+                      <Box>
+                        <Typography variant="subtitle2">{review.customerId?.name || 'Anonymous'}</Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Rating value={review.rating} readOnly size="small" />
+                          <Typography variant="caption" color="text.secondary">
+                            {new Date(review.createdAt).toLocaleDateString()}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </Box>
+                    <Typography variant="body2">
+                      {review.comment}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        ) : (
+          <Box sx={{ textAlign: 'center', p: 3 }}>
+            <Typography variant="body1">No reviews yet. Be the first to share your experience!</Typography>
+          </Box>
+        )}
+        <Box sx={{ textAlign: 'center', mt: 2 }}>
+          <Button 
+            variant="outlined"
+            component={Link}
+            href="/reviews"
+          >
+            View All Reviews
+          </Button>
+        </Box>
+      </Box>
     </Box>
   );
 }

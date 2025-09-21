@@ -15,7 +15,9 @@ import MenuIcon from '@mui/icons-material/Menu';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import ColorModeIconDropdown from './ColorModeIconDropdown';
 import { useThemeMode } from './AppTheme';
+ import { useAuth } from '../../context/AuthContext';
 import Image from 'next/image';
+import Link from 'next/link';
 
 const StyledToolbar = styled(Toolbar, {
   shouldForwardProp: (prop) => prop !== 'isHydrated',
@@ -40,6 +42,7 @@ const StyledToolbar = styled(Toolbar, {
 export default function AppAppBar() {
   const [open, setOpen] = React.useState(false);
   const [isHydrated, setIsHydrated] = React.useState(false);
+  const { user, logout, isAdmin } = useAuth();
 
   // Handle hydration to prevent SSR/client mismatch
   React.useEffect(() => {
@@ -59,9 +62,9 @@ export default function AppAppBar() {
   };
 
   const scrollToSearch = () => {
-    const searchElement = document.getElementById('search-section');
-    if (searchElement) {
-      searchElement.scrollIntoView({ behavior: 'smooth' });
+    const bookingElement = document.getElementById('booking');
+    if (bookingElement) {
+      bookingElement.scrollIntoView({ behavior: 'smooth' });
     }
     setOpen(false); // Close mobile drawer after clicking
   };
@@ -93,18 +96,11 @@ export default function AppAppBar() {
                 variant="text" 
                 color="info" 
                 size="small"
+                component={Link}
+                href="/#booking"
                 onClick={scrollToSearch}
               >
-                Search Cruises
-              </Button>
-              <Button variant="text" color="info" size="small">
-                Destinations
-              </Button>
-              <Button variant="text" color="info" size="small">
-                Cruise Lines
-              </Button>
-              <Button variant="text" color="info" size="small">
-                Deals
+                Book Cruise
               </Button>
               <Button 
                 variant="text" 
@@ -124,12 +120,71 @@ export default function AppAppBar() {
               alignItems: 'center',
             }}
           >
-            <Button color="primary" variant="text" size="small">
-              Log In
-            </Button>
-            <Button color="primary" variant="contained" size="small">
-              Book Now
-            </Button>
+            {user ? (
+              <>
+                {isAdmin() ? (
+                  <Button 
+                    color="primary" 
+                    variant="text" 
+                    size="small"
+                    component={Link}
+                    href="/admin"
+                  >
+                    Admin Dashboard
+                  </Button>
+                ) : (
+                  <Button 
+                    color="primary" 
+                    variant="text" 
+                    size="small"
+                    component={Link}
+                    href="/profile"
+                  >
+                    My Profile
+                  </Button>
+                )}
+                <Button 
+                  color="primary" 
+                  variant="text" 
+                  size="small"
+                  onClick={logout}
+                >
+                  Logout
+                </Button>
+                <Button 
+                  color="primary" 
+                  variant="contained" 
+                  size="small"
+                  component={Link}
+                  href="/#booking"
+                  onClick={scrollToSearch}
+                >
+                  Book Now
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button 
+                  color="primary" 
+                  variant="text" 
+                  size="small"
+                  component={Link}
+                  href="/login"
+                >
+                  Log In
+                </Button>
+                <Button 
+                  color="primary" 
+                  variant="contained" 
+                  size="small"
+                  component={Link}
+                  href="/#booking"
+                  onClick={scrollToSearch}
+                >
+                  Book Now
+                </Button>
+              </>
+            )}
             <ColorModeIconDropdown />
           </Box>
           <Box sx={{ display: { xs: 'flex', md: 'none' }, gap: 1 }}>
@@ -158,23 +213,71 @@ export default function AppAppBar() {
                     <CloseRoundedIcon />
                   </IconButton>
                 </Box>
-                <MenuItem onClick={scrollToSearch}>Search Cruises</MenuItem>
-                <MenuItem>Destinations</MenuItem>
-                <MenuItem>Cruise Lines</MenuItem>
-                <MenuItem>Deals</MenuItem>
+                <MenuItem 
+                  component={Link}
+                  href="/#booking"
+                  onClick={(e) => {
+                    toggleDrawer(false)();
+                    scrollToSearch();
+                  }}
+                >
+                  Book Cruise
+                </MenuItem>
                 <MenuItem onClick={scrollToFooter}>About</MenuItem>
                 <MenuItem>Contact</MenuItem>
                 <Divider sx={{ my: 3 }} />
                 <MenuItem>
-                  <Button color="primary" variant="contained" fullWidth>
+                  <Button 
+                    color="primary" 
+                    variant="contained" 
+                    fullWidth
+                    component={Link}
+                    href="/#booking"
+                    onClick={(e) => {
+                      toggleDrawer(false)();
+                      scrollToSearch();
+                    }}
+                  >
                     Book Now
                   </Button>
                 </MenuItem>
-                <MenuItem>
-                  <Button color="primary" variant="outlined" fullWidth>
-                    Log In
-                  </Button>
-                </MenuItem>
+                {user ? (
+                  <>
+                    <MenuItem>
+                      <Button 
+                        color="primary" 
+                        variant="outlined" 
+                        fullWidth
+                        component={Link}
+                        href={isAdmin() ? "/admin" : "/profile"}
+                      >
+                        {isAdmin() ? 'Admin Dashboard' : 'My Profile'}
+                      </Button>
+                    </MenuItem>
+                    <MenuItem>
+                      <Button 
+                        color="primary" 
+                        variant="outlined" 
+                        fullWidth
+                        onClick={logout}
+                      >
+                        Logout
+                      </Button>
+                    </MenuItem>
+                  </>
+                ) : (
+                  <MenuItem>
+                    <Button 
+                      color="primary" 
+                      variant="outlined" 
+                      fullWidth
+                      component={Link}
+                      href="/login"
+                    >
+                      Log In
+                    </Button>
+                  </MenuItem>
+                )}
               </Box>
             </Drawer>
           </Box>
