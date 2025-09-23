@@ -24,7 +24,6 @@ import {
   Phone,
 } from "@mui/icons-material";
 import AppTheme from "../components/AppTheme";
-import AppAppBar from "../components/AppAppBar";
 import Footer from "../components/Footer";
 import { useAuth } from "../../context/AuthContext";
 import { useRouter } from "next/navigation";
@@ -146,7 +145,6 @@ export default function LoginPage() {
 
   return (
     <AppTheme>
-      <AppAppBar />
       <Container maxWidth="sm" sx={{ my: 8 }}>
         <Card>
           <CardContent sx={{ p: 4 }}>
