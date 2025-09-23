@@ -37,6 +37,7 @@ import Footer from "../components/Footer";
 export default function BookingPage() {
   const [bookings, setBookings] = useState([]);
   const [customers, setCustomers] = useState([]);
+  const [packages, setPackages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [editingBooking, setEditingBooking] = useState(null);
@@ -44,13 +45,28 @@ export default function BookingPage() {
     customerId: "",
     cruiseDate: "",
     numberOfGuests: 1,
+    packageType: "",
+    cruisingTime: "",
   });
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
   useEffect(() => {
     fetchBookings();
     fetchCustomers();
+    fetchPackages();
   }, []);
+  
+  const fetchPackages = async () => {
+    try {
+      const res = await fetch("/api/package");
+      if (!res.ok) throw new Error("Failed to fetch packages");
+      const data = await res.json();
+      setPackages(data);
+    } catch (err) {
+      console.error(err);
+      showSnackbar("Failed to fetch packages", "error");
+    }
+  };
 
   const fetchBookings = async () => {
       try {
@@ -87,6 +103,8 @@ export default function BookingPage() {
       customerId: booking?.customerId?._id || booking?.customerId || "",
       cruiseDate: booking ? new Date(booking.cruiseDate).toISOString().split('T')[0] : "",
       numberOfGuests: booking?.numberOfGuests || 1,
+      packageType: booking?.packageType || (packages.length > 0 ? packages[0].name : ""),
+      cruisingTime: booking?.cruisingTime || (packages.length > 0 ? packages[0].cruisingTime : ""),
     });
     setOpen(true);
   };
@@ -107,10 +125,17 @@ export default function BookingPage() {
       
       const method = editingBooking ? "PUT" : "POST";
       
+      // Include package information in the request
+      const bookingData = {
+        ...formData,
+        packageType: formData.packageType,
+        cruisingTime: formData.cruisingTime
+      };
+      
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(bookingData),
       });
 
       if (!res.ok) {
@@ -198,6 +223,8 @@ export default function BookingPage() {
                     <TableCell>Email</TableCell>
                     <TableCell>Phone</TableCell>
                     <TableCell>Cruise Date</TableCell>
+                    <TableCell>Package</TableCell>
+                    <TableCell>Time</TableCell>
                     <TableCell>Guests</TableCell>
                     <TableCell>Actions</TableCell>
                   </TableRow>
@@ -209,8 +236,10 @@ export default function BookingPage() {
                       <TableCell>{booking.customerId?.email}</TableCell>
                       <TableCell>{booking.customerId?.phone || "-"}</TableCell>
                       <TableCell>
-                  {new Date(booking.cruiseDate).toLocaleDateString()}
+                        {new Date(booking.cruiseDate).toLocaleDateString()}
                       </TableCell>
+                      <TableCell>{booking.packageType || "SUNSET Cruise"}</TableCell>
+                      <TableCell>{booking.cruisingTime || "17:00-18:30"}</TableCell>
                       <TableCell>{booking.numberOfGuests}</TableCell>
                       <TableCell>
                         <IconButton
@@ -293,6 +322,47 @@ export default function BookingPage() {
                     onChange={handleChange}
                     inputProps={{ min: 1, max: 20 }}
                     required
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <FormControl fullWidth required>
+                    <InputLabel>Package Type</InputLabel>
+                    <Select
+                      name="packageType"
+                      value={formData.packageType}
+                      onChange={(e) => {
+                        const selectedPackage = packages.find(p => p.name === e.target.value);
+                        setFormData({
+                          ...formData,
+                          packageType: e.target.value,
+                          cruisingTime: selectedPackage ? selectedPackage.cruisingTime : formData.cruisingTime
+                        });
+                      }}
+                      label="Package Type"
+                    >
+                      {packages.length > 0 ? (
+                        packages.map((pkg) => (
+                          <MenuItem key={pkg._id} value={pkg.name}>
+                            {pkg.name}
+                          </MenuItem>
+                        ))
+                      ) : (
+                        <MenuItem value="SUNSET Cruise Ticket at Asiatique Pier">
+                          SUNSET Cruise Ticket at Asiatique Pier
+                        </MenuItem>
+                      )}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Cruising Time"
+                    name="cruisingTime"
+                    value={formData.cruisingTime}
+                    onChange={handleChange}
+                    required
+                    disabled
                   />
                 </Grid>
               </Grid>

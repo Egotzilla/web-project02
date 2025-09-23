@@ -22,7 +22,7 @@ export async function POST(req) {
     const data = await req.json();
 
     // Validate required fields
-    const { customerId, cruiseDate, numberOfGuests } = data;
+    const { customerId, cruiseDate, numberOfGuests, packageType, cruisingTime } = data;
     if (!customerId || !cruiseDate || !numberOfGuests) {
       return new Response(JSON.stringify({ error: "Missing required fields" }), { status: 400 });
     }
@@ -37,6 +37,8 @@ export async function POST(req) {
       customerId,
       cruiseDate: new Date(cruiseDate),
       numberOfGuests,
+      packageType: packageType || "SUNSET Cruise Ticket at Asiatique Pier",
+      cruisingTime: cruisingTime || "17:00-18:30",
     });
 
     return new Response(JSON.stringify(booking), { status: 201 });

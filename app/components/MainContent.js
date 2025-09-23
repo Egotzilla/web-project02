@@ -62,27 +62,15 @@ const cruiseData = {
   ]
 };
 
-const packageOptions = [
+// Default package options as fallback
+const defaultPackageOptions = [
   {
-    id: 1,
+    id: 'default',
     name: 'SUNSET Cruise Ticket at Asiatique Pier',
     time: '17:00-18:30',
     description: 'Cruising Time: 17:00-18:30',
+    location: 'Asiatique Pier',
     selected: true
-  },
-  {
-    id: 2,
-    name: 'Dinner Cruise Ticket at Asiatique Pier',
-    time: '19:30-21:30',
-    description: 'Cruising Time: 19:30-21:30',
-    selected: false
-  },
-  {
-    id: 3,
-    name: 'Dinner Cruise Ticket at ICONSIAM Pier',
-    time: '19:30-21:30',
-    description: 'Cruising Time: 19:30-21:30',
-    selected: false
   }
 ];
 
@@ -229,6 +217,8 @@ export default function MainContent() {
   const [bookingError, setBookingError] = React.useState('');
   const [reviews, setReviews] = React.useState([]);
   const [reviewsLoading, setReviewsLoading] = React.useState(true);
+  const [packageOptions, setPackageOptions] = React.useState(defaultPackageOptions);
+  const [packagesLoading, setPackagesLoading] = React.useState(true);
   
   const { user } = useAuth();
   const router = useRouter();
@@ -253,6 +243,37 @@ export default function MainContent() {
     
     fetchReviews();
   }, []);
+  
+  // Fetch package options from API
+  React.useEffect(() => {
+    const fetchPackages = async () => {
+      try {
+        const response = await fetch('/api/package');
+        if (response.ok) {
+          const data = await response.json();
+          // Transform API data to match the expected format
+          const formattedPackages = data.filter(pkg => pkg.isActive).map((pkg, index) => ({
+            id: pkg._id,
+            name: pkg.name,
+            time: pkg.cruisingTime,
+            description: pkg.description,
+            location: pkg.location,
+            selected: index === 0 // Select the first package by default
+          }));
+          
+          setPackageOptions(formattedPackages.length > 0 ? formattedPackages : defaultPackageOptions);
+        }
+      } catch (error) {
+        console.error('Error fetching package options:', error);
+        // Fallback to default options if API fails
+        setPackageOptions(defaultPackageOptions);
+      } finally {
+        setPackagesLoading(false);
+      }
+    };
+    
+    fetchPackages();
+  }, []);
 
   const handleBooking = async () => {
     if (!user) {
@@ -275,6 +296,9 @@ export default function MainContent() {
     setBookingError('');
     setBookingSuccess('');
 
+    // Find the selected package
+    const selectedPackageData = packageOptions.find(pkg => pkg.id === selectedPackage) || packageOptions[0];
+
     try {
       const response = await fetch('/api/booking', {
         method: 'POST',
@@ -285,6 +309,8 @@ export default function MainContent() {
           customerId: user._id,
           cruiseDate: selectedDate,
           numberOfGuests: numberOfGuests,
+          packageType: selectedPackageData.name,
+          cruisingTime: selectedPackageData.time,
         }),
       });
 

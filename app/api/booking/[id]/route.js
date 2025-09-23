@@ -23,7 +23,7 @@ export async function PUT(req, { params }) {
     await connectDB();
     const data = await req.json();
 
-    const { customerId, cruiseDate, numberOfGuests } = data;
+    const { customerId, cruiseDate, numberOfGuests, packageType, cruisingTime } = data;
     if (!customerId || !cruiseDate || !numberOfGuests) {
       return new Response(JSON.stringify({ error: "Missing required fields" }), { status: 400 });
     }
@@ -40,6 +40,8 @@ export async function PUT(req, { params }) {
         customerId,
         cruiseDate: new Date(cruiseDate),
         numberOfGuests,
+        packageType: packageType || "SUNSET Cruise Ticket at Asiatique Pier",
+        cruisingTime: cruisingTime || "17:00-18:30",
       },
       { new: true }
     ).populate("customerId", "name email phone");

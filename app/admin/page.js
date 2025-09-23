@@ -265,12 +265,14 @@ export default function AdminDashboard() {
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <Button
-                      variant="outlined"
+                      variant="contained"
                       fullWidth
                       startIcon={<TrendingUpIcon />}
+                      component={Link}
+                      href="/admin/packages"
                       sx={{ py: 1.5 }}
                     >
-                      Generate Report
+                      Manage Packages
                     </Button>
                   </Grid>
                 </Grid>
