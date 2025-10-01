@@ -202,7 +202,7 @@ export default function BookingPage() {
               Bangkok River Cruise Bookings
             </Typography>
             <Typography variant="subtitle1" color="text.secondary" sx={{ mt: 1 }}>
-              Book your unforgettable journey through Bangkok's iconic waterways
+              Book your unforgettable journey through Bangkok&apos;s iconic waterways
             </Typography>
           </Box>
           <Button

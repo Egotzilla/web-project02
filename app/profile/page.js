@@ -180,7 +180,7 @@ export default function ProfilePage() {
 
                 {bookings.length === 0 ? (
                   <Alert severity="info">
-                    You haven't made any bookings yet. <Link href="/">Book your first cruise!</Link>
+                    You haven&apos;t made any bookings yet. <Link href="/">Book your first cruise!</Link>
                   </Alert>
                 ) : (
                   <List>
@@ -247,7 +247,7 @@ export default function ProfilePage() {
 
                 {reviews.length === 0 ? (
                   <Alert severity="info">
-                    You haven't written any reviews yet. Share your cruise experience with others!
+                    You haven&apos;t written any reviews yet. Share your cruise experience with others!
                   </Alert>
                 ) : (
                   <List>
