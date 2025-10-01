@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect } from 'react';
+import { api } from '../lib/path';
 
 const AuthContext = createContext();
 
@@ -27,7 +28,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch(api('/api/auth/login'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -51,7 +52,7 @@ export const AuthProvider = ({ children }) => {
 
   const adminLogin = async (username, password) => {
     try {
-      const response = await fetch('/api/auth/admin-login', {
+      const response = await fetch(api('/api/auth/admin-login'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -75,7 +76,7 @@ export const AuthProvider = ({ children }) => {
 
   const signup = async (name, email, password, phone) => {
     try {
-      const response = await fetch('/api/auth/signup', {
+      const response = await fetch(api('/api/auth/signup'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

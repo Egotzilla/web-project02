@@ -33,6 +33,7 @@ import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from "@mui/ico
 import AppTheme from "../components/AppTheme";
 import AppAppBar from "../components/AppAppBar";
 import Footer from "../components/Footer";
+import { api } from "../../lib/path";
 
 export default function BookingPage() {
   const [bookings, setBookings] = useState([]);
@@ -58,7 +59,7 @@ export default function BookingPage() {
   
   const fetchPackages = async () => {
     try {
-      const res = await fetch("/api/package");
+      const res = await fetch(api("/api/package"));
       if (!res.ok) throw new Error("Failed to fetch packages");
       const data = await res.json();
       setPackages(data);
@@ -70,7 +71,7 @@ export default function BookingPage() {
 
   const fetchBookings = async () => {
       try {
-        const res = await fetch("/api/booking");
+        const res = await fetch(api("/api/booking"));
         if (!res.ok) throw new Error("Failed to fetch bookings");
         const data = await res.json();
         setBookings(data);
@@ -84,7 +85,7 @@ export default function BookingPage() {
 
   const fetchCustomers = async () => {
     try {
-      const res = await fetch("/api/customer");
+      const res = await fetch(api("/api/customer"));
       if (!res.ok) throw new Error("Failed to fetch customers");
       const data = await res.json();
       setCustomers(data);
@@ -120,8 +121,8 @@ export default function BookingPage() {
     
     try {
       const url = editingBooking 
-        ? `/api/booking/${editingBooking._id}`
-        : "/api/booking";
+        ? api(`/api/booking/${editingBooking._id}`)
+        : api("/api/booking");
       
       const method = editingBooking ? "PUT" : "POST";
       
@@ -158,7 +159,7 @@ export default function BookingPage() {
     if (!confirm("Are you sure you want to delete this booking?")) return;
 
     try {
-      const res = await fetch(`/api/booking/${bookingId}`, {
+      const res = await fetch(api(`/api/booking/${bookingId}`), {
         method: "DELETE",
       });
 

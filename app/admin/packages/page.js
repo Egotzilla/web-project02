@@ -31,6 +31,7 @@ import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from "@mui/ico
 import AppTheme from "../../components/AppTheme";
 import AppAppBar from "../../components/AppAppBar";
 import Footer from "../../components/Footer";
+import { api } from "../../../lib/path";
 
 export default function PackageManagementPage() {
   const [packages, setPackages] = useState([]);
@@ -52,7 +53,7 @@ export default function PackageManagementPage() {
 
   const fetchPackages = async () => {
     try {
-      const res = await fetch("/api/package");
+      const res = await fetch(api("/api/package"));
       if (!res.ok) throw new Error("Failed to fetch packages");
       const data = await res.json();
       setPackages(data);
@@ -97,8 +98,8 @@ export default function PackageManagementPage() {
     
     try {
       const url = editingPackage 
-        ? `/api/package/${editingPackage._id}`
-        : "/api/package";
+        ? api(`/api/package/${editingPackage._id}`)
+        : api("/api/package");
       
       const method = editingPackage ? "PUT" : "POST";
       
@@ -128,7 +129,7 @@ export default function PackageManagementPage() {
     if (!confirm("Are you sure you want to delete this package?")) return;
 
     try {
-      const res = await fetch(`/api/package/${packageId}`, {
+      const res = await fetch(api(`/api/package/${packageId}`), {
         method: "DELETE",
       });
 

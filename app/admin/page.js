@@ -24,6 +24,7 @@ import AppTheme from "../components/AppTheme";
 import AppAppBar from "../components/AppAppBar";
 import Footer from "../components/Footer";
 import Link from "next/link";
+import { api } from "../../lib/path";
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({
@@ -44,9 +45,9 @@ export default function AdminDashboard() {
     try {
       // Fetch all data to calculate stats
       const [customersRes, bookingsRes, reviewsRes] = await Promise.all([
-        fetch("/api/customer"),
-        fetch("/api/booking"),
-        fetch("/api/review"),
+        fetch(api("/api/customer")),
+        fetch(api("/api/booking")),
+        fetch(api("/api/review")),
       ]);
 
       const customers = await customersRes.json();

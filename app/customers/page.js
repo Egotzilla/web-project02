@@ -29,6 +29,7 @@ import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from "@mui/ico
 import AppTheme from "../components/AppTheme";
 import AppAppBar from "../components/AppAppBar";
 import Footer from "../components/Footer";
+import { api } from "../../lib/path";
 
 export default function CustomersPage() {
   const [customers, setCustomers] = useState([]);
@@ -48,7 +49,7 @@ export default function CustomersPage() {
 
   const fetchCustomers = async () => {
     try {
-      const res = await fetch("/api/customer");
+      const res = await fetch(api("/api/customer"));
       if (!res.ok) throw new Error("Failed to fetch customers");
       const data = await res.json();
       setCustomers(data);
@@ -85,8 +86,8 @@ export default function CustomersPage() {
     
     try {
       const url = editingCustomer 
-        ? `/api/customer/${editingCustomer._id}`
-        : "/api/customer";
+        ? api(`/api/customer/${editingCustomer._id}`)
+        : api("/api/customer");
       
       const method = editingCustomer ? "PUT" : "POST";
       
@@ -116,7 +117,7 @@ export default function CustomersPage() {
     if (!confirm("Are you sure you want to delete this customer?")) return;
 
     try {
-      const res = await fetch(`/api/customer/${customerId}`, {
+      const res = await fetch(api(`/api/customer/${customerId}`), {
         method: "DELETE",
       });
 

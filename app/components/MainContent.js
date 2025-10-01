@@ -29,6 +29,7 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import StarIcon from '@mui/icons-material/Star';
 import { useAuth } from '../../context/AuthContext';
+import { api } from '../../lib/path';
 import { useRouter } from 'next/navigation';
 import Alert from '@mui/material/Alert';
 import Link from 'next/link';
@@ -36,7 +37,7 @@ import Link from 'next/link';
 const cruiseData = {
   img: 'https://picsum.photos/800/450?random=1',
   tag: 'Bangkok',
-  title: 'Chao Phraya Princess Cruise in Bangkok',
+  title: 'Emerald River Cruise in Bangkok',
   rating: 4.5,
   reviews: 16500,
   booked: '400,000+',
@@ -235,7 +236,7 @@ export default function MainContent() {
     const fetchReviews = async () => {
       try {
         setReviewsLoading(true);
-        const response = await fetch('/api/review');
+        const response = await fetch(api('/api/review'));
         const data = await response.json();
         
         // Get the 3 most recent reviews
@@ -258,11 +259,11 @@ export default function MainContent() {
         setStatsLoading(true);
         
         // Fetch all reviews to calculate total count and average rating
-        const reviewsResponse = await fetch('/api/review');
+        const reviewsResponse = await fetch(api('/api/review'));
         const reviewsData = await reviewsResponse.json();
         
         // Fetch all bookings to calculate total bookings
-        const bookingsResponse = await fetch('/api/booking');
+        const bookingsResponse = await fetch(api('/api/booking'));
         const bookingsData = await bookingsResponse.json();
         
         // Calculate statistics
@@ -297,7 +298,7 @@ export default function MainContent() {
   React.useEffect(() => {
     const fetchPackages = async () => {
       try {
-        const response = await fetch('/api/package');
+        const response = await fetch(api('/api/package'));
         if (response.ok) {
           const data = await response.json();
           // Transform API data to match the expected format
@@ -338,7 +339,7 @@ export default function MainContent() {
     setReviewError('');
     setReviewSuccess('');
     try {
-      const response = await fetch('/api/review', {
+      const response = await fetch(api('/api/review'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -393,7 +394,7 @@ export default function MainContent() {
     const selectedPackageData = packageOptions.find(pkg => pkg.id === selectedPackage) || packageOptions[0];
 
     try {
-      const response = await fetch('/api/booking', {
+      const response = await fetch(api('/api/booking'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

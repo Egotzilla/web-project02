@@ -32,6 +32,7 @@ import Footer from "../components/Footer";
 import { useAuth } from "../../context/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { api } from "../../lib/path";
 
 export default function ProfilePage() {
   const { user, isAdmin } = useAuth();
@@ -58,8 +59,8 @@ export default function ProfilePage() {
     try {
       // Fetch user's bookings and reviews
       const [bookingsRes, reviewsRes] = await Promise.all([
-        fetch("/api/booking"),
-        fetch("/api/review"),
+        fetch(api("/api/booking")),
+        fetch(api("/api/review")),
       ]);
 
       const allBookings = await bookingsRes.json();

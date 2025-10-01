@@ -34,6 +34,7 @@ import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from "@mui/ico
 import AppTheme from "../components/AppTheme";
 import AppAppBar from "../components/AppAppBar";
 import Footer from "../components/Footer";
+import { api } from "../../lib/path";
 
 export default function ReviewsPage() {
   const [reviews, setReviews] = useState([]);
@@ -55,7 +56,7 @@ export default function ReviewsPage() {
 
   const fetchReviews = async () => {
     try {
-      const res = await fetch("/api/review");
+      const res = await fetch(api("/api/review"));
       if (!res.ok) throw new Error("Failed to fetch reviews");
       const data = await res.json();
       setReviews(data);
@@ -69,7 +70,7 @@ export default function ReviewsPage() {
 
   const fetchCustomers = async () => {
     try {
-      const res = await fetch("/api/customer");
+      const res = await fetch(api("/api/customer"));
       if (!res.ok) throw new Error("Failed to fetch customers");
       const data = await res.json();
       setCustomers(data);
@@ -103,8 +104,8 @@ export default function ReviewsPage() {
     
     try {
       const url = editingReview 
-        ? `/api/review/${editingReview._id}`
-        : "/api/review";
+        ? api(`/api/review/${editingReview._id}`)
+        : api("/api/review");
       
       const method = editingReview ? "PUT" : "POST";
       
@@ -134,7 +135,7 @@ export default function ReviewsPage() {
     if (!confirm("Are you sure you want to delete this review?")) return;
 
     try {
-      const res = await fetch(`/api/review/${reviewId}`, {
+      const res = await fetch(api(`/api/review/${reviewId}`), {
         method: "DELETE",
       });
 
