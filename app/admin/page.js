@@ -11,12 +11,6 @@ import {
   Typography,
   Paper,
   Avatar,
-  Chip,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemAvatar,
-  Divider,
 } from "@mui/material";
 import {
   People as PeopleIcon,
@@ -132,36 +126,7 @@ export default function AdminDashboard() {
     },
   ];
 
-  const recentActivities = [
-    {
-      id: 1,
-      type: "booking",
-      message: "New booking created for tomorrow's sunset cruise",
-      time: "2 hours ago",
-      icon: <EventIcon />,
-    },
-    {
-      id: 2,
-      type: "review",
-      message: "5-star review received from Sarah Johnson",
-      time: "4 hours ago",
-      icon: <ReviewsIcon />,
-    },
-    {
-      id: 3,
-      type: "customer",
-      message: "New customer registration: Michael Chen",
-      time: "6 hours ago",
-      icon: <PeopleIcon />,
-    },
-    {
-      id: 4,
-      type: "booking",
-      message: "Booking cancelled for dinner cruise",
-      time: "8 hours ago",
-      icon: <EventIcon />,
-    },
-  ];
+  // Recent Activity section removed per request
 
   return (
     <AppTheme>
@@ -280,50 +245,7 @@ export default function AdminDashboard() {
             </Card>
           </Grid>
 
-          {/* Recent Activity */}
-          <Grid item xs={12} md={6}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Recent Activity
-                </Typography>
-                <List>
-                  {recentActivities.map((activity, index) => (
-                    <div key={activity.id}>
-                      <ListItem alignItems="flex-start" sx={{ px: 0 }}>
-                        <ListItemAvatar>
-                          <Avatar sx={{ backgroundColor: 'primary.main' }}>
-                            {activity.icon}
-                          </Avatar>
-                        </ListItemAvatar>
-                        <ListItemText
-                          primary={activity.message}
-                          secondary={
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
-                              <Chip
-                                label={activity.type}
-                                size="small"
-                                variant="outlined"
-                                color={
-                                  activity.type === 'booking' ? 'primary' :
-                                  activity.type === 'review' ? 'success' :
-                                  activity.type === 'customer' ? 'info' : 'default'
-                                }
-                              />
-                              <Typography variant="caption" color="text.secondary">
-                                {activity.time}
-                              </Typography>
-                            </Box>
-                          }
-                        />
-                      </ListItem>
-                      {index < recentActivities.length - 1 && <Divider />}
-                    </div>
-                  ))}
-                </List>
-              </CardContent>
-            </Card>
-          </Grid>
+          {/* Recent Activity intentionally removed */}
 
           {/* Cruise Information */}
           <Grid item xs={12}>

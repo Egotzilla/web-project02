@@ -26,11 +26,7 @@ import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import RssFeedRoundedIcon from '@mui/icons-material/RssFeedRounded';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
-import GroupIcon from '@mui/icons-material/Group';
-import LanguageIcon from '@mui/icons-material/Language';
-import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import StarIcon from '@mui/icons-material/Star';
 import { useAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -43,10 +39,10 @@ const cruiseData = {
   title: 'Chao Phraya Princess Cruise in Bangkok',
   rating: 4.5,
   reviews: 16500,
-  booked: 400000,
+  booked: '400,000+',
   duration: '1hr 30min - 5hr 30min',
-  price: 27.99,
-  currency: 'US$',
+  price: 899.99,
+  currency: 'THB',
   location: 'Bangkok',
   features: ['English', 'Join in group', 'Meet at location'],
   highlights: [
@@ -217,8 +213,19 @@ export default function MainContent() {
   const [bookingError, setBookingError] = React.useState('');
   const [reviews, setReviews] = React.useState([]);
   const [reviewsLoading, setReviewsLoading] = React.useState(true);
+  const [newReviewRating, setNewReviewRating] = React.useState(5);
+  const [newReviewComment, setNewReviewComment] = React.useState('');
+  const [reviewSubmitting, setReviewSubmitting] = React.useState(false);
+  const [reviewError, setReviewError] = React.useState('');
+  const [reviewSuccess, setReviewSuccess] = React.useState('');
   const [packageOptions, setPackageOptions] = React.useState(defaultPackageOptions);
   const [packagesLoading, setPackagesLoading] = React.useState(true);
+  const [realStats, setRealStats] = React.useState({
+    totalReviews: 16500,
+    averageRating: 4.5,
+    totalBookings: '400,000+'
+  });
+  const [statsLoading, setStatsLoading] = React.useState(true);
   
   const { user } = useAuth();
   const router = useRouter();
@@ -242,6 +249,48 @@ export default function MainContent() {
     };
     
     fetchReviews();
+  }, []);
+  
+  // Fetch real statistics from database
+  React.useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        setStatsLoading(true);
+        
+        // Fetch all reviews to calculate total count and average rating
+        const reviewsResponse = await fetch('/api/review');
+        const reviewsData = await reviewsResponse.json();
+        
+        // Fetch all bookings to calculate total bookings
+        const bookingsResponse = await fetch('/api/booking');
+        const bookingsData = await bookingsResponse.json();
+        
+        // Calculate statistics
+        const totalReviews = reviewsData.length;
+        const averageRating = totalReviews > 0 
+          ? (reviewsData.reduce((sum, review) => sum + review.rating, 0) / totalReviews).toFixed(1)
+          : 4.5;
+        
+        // Calculate total guests from all bookings
+        const totalGuests = bookingsData.reduce((sum, booking) => sum + (booking.numberOfGuests || 1), 0);
+        const totalBookingsFormatted = totalGuests > 1000 
+          ? `${Math.floor(totalGuests / 1000)}k+`
+          : `${totalGuests}+`;
+        
+        setRealStats({
+          totalReviews,
+          averageRating: parseFloat(averageRating),
+          totalBookings: totalBookingsFormatted
+        });
+      } catch (error) {
+        console.error('Failed to fetch statistics:', error);
+        // Keep default values on error
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+    
+    fetchStats();
   }, []);
   
   // Fetch package options from API
@@ -274,6 +323,50 @@ export default function MainContent() {
     
     fetchPackages();
   }, []);
+
+  const handleSubmitReview = async () => {
+    if (!user) {
+      setReviewError('Please log in to submit a review');
+      setTimeout(() => router.push('/login'), 1500);
+      return;
+    }
+    if (!newReviewComment.trim()) {
+      setReviewError('Please enter your review comment');
+      return;
+    }
+    setReviewSubmitting(true);
+    setReviewError('');
+    setReviewSuccess('');
+    try {
+      const response = await fetch('/api/review', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerId: user._id,
+          rating: newReviewRating,
+          comment: newReviewComment.trim(),
+        })
+      });
+      const created = await response.json();
+      if (!response.ok) {
+        throw new Error(created.error || 'Failed to submit review');
+      }
+      // Prepend new review and update stats
+      setReviews((prev) => [created, ...prev].slice(0, 3));
+      setRealStats((prev) => {
+        const newTotal = prev.totalReviews + 1;
+        const newAverage = ((prev.averageRating * prev.totalReviews) + newReviewRating) / newTotal;
+        return { ...prev, totalReviews: newTotal, averageRating: parseFloat(newAverage.toFixed(1)) };
+      });
+      setReviewSuccess('Thank you! Your review has been submitted.');
+      setNewReviewComment('');
+      setNewReviewRating(5);
+    } catch (err) {
+      setReviewError(err.message || 'Failed to submit review');
+    } finally {
+      setReviewSubmitting(false);
+    }
+  };
 
   const handleBooking = async () => {
     if (!user) {
@@ -343,41 +436,7 @@ export default function MainContent() {
           {cruiseData.title}
         </Typography>
         
-        {/* Feature Tags */}
-        <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
-          {cruiseData.features.map((feature, index) => (
-            <Chip 
-              key={index} 
-              label={feature} 
-              size="small" 
-              variant="outlined"
-              icon={feature === 'English' ? <LanguageIcon /> : feature === 'Join in group' ? <GroupIcon /> : <LocationOnIcon />}
-            />
-          ))}
-          <Chip 
-            label={cruiseData.duration} 
-            size="small" 
-            variant="outlined"
-            icon={<AccessTimeIcon />}
-          />
-        </Box>
-
-        {/* Rating and Stats */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, mb: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Rating value={cruiseData.rating} readOnly size="small" />
-            <Typography variant="body2">
-              {cruiseData.rating}/5 ({cruiseData.reviews.toLocaleString()} reviews)
-            </Typography>
-          </Box>
-          <Typography variant="body2" color="text.secondary">
-            {cruiseData.booked.toLocaleString()}+ booked
-          </Typography>
-          <Chip label={cruiseData.location} size="small" />
-          <IconButton size="small">
-            <FavoriteBorderIcon />
-          </IconButton>
-        </Box>
+        {/* Feature tags, duration, rating, bookings, and location intentionally removed */}
       </Box>
 
       <Grid container spacing={4}>
@@ -565,40 +624,6 @@ export default function MainContent() {
                 </Button>
               </Box>
 
-              {/* Package Details */}
-              <Accordion>
-                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                  <Typography variant="body2">Package details</Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                    {packageDetails.map((detail, index) => (
-                      <Chip 
-                        key={index} 
-                        label={detail} 
-                        size="small" 
-                        variant="outlined"
-                        sx={{ alignSelf: 'flex-start' }}
-                      />
-                    ))}
-                  </Box>
-                </AccordionDetails>
-              </Accordion>
-
-              {/* Itinerary */}
-              <Accordion>
-                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                  <Typography variant="body2">Itinerary</Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <AccessTimeIcon fontSize="small" />
-                    <Typography variant="body2">
-                      From 16:00 • Departure
-                    </Typography>
-                  </Box>
-                </AccordionDetails>
-              </Accordion>
             </CardContent>
           </Card>
         </Grid>
@@ -609,6 +634,50 @@ export default function MainContent() {
         <Typography variant="h5" gutterBottom>
           Customer Reviews
         </Typography>
+        {/* Add Review Form */}
+        <Card sx={{ mb: 2 }}>
+          <CardContent>
+            {user ? (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                {reviewError && (
+                  <Alert severity="error">{reviewError}</Alert>
+                )}
+                {reviewSuccess && (
+                  <Alert severity="success">{reviewSuccess}</Alert>
+                )}
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Typography variant="body2">Your rating:</Typography>
+                  <Rating
+                    value={newReviewRating}
+                    onChange={(_, value) => setNewReviewRating(value || 5)}
+                  />
+                </Box>
+                <TextField
+                  label="Share your experience"
+                  placeholder="Write your review here..."
+                  multiline
+                  minRows={3}
+                  value={newReviewComment}
+                  onChange={(e) => setNewReviewComment(e.target.value)}
+                />
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                  <Button
+                    variant="contained"
+                    onClick={handleSubmitReview}
+                    disabled={reviewSubmitting}
+                  >
+                    {reviewSubmitting ? 'Submitting...' : 'Submit Review'}
+                  </Button>
+                </Box>
+              </Box>
+            ) : (
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
+                <Typography variant="body2">Please log in to write a review.</Typography>
+                <Button variant="outlined" component={Link} href="/login">Log in</Button>
+              </Box>
+            )}
+          </CardContent>
+        </Card>
         {reviewsLoading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
             <Typography>Loading reviews...</Typography>
