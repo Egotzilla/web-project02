@@ -1,4 +1,4 @@
-# Bangkok River Cruise Booking System
+# Emerald River Cruise in Bangkok
 
 A modern web-based booking system for a Bangkok river cruise experience. Built with Next.js, Material-UI, and MongoDB.
 
