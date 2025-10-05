@@ -1,5 +1,5 @@
-import connectDB from "../../../../lib/mongodb";
-import Package from "../../../../models/package";
+import connectDB from "@/lib/mongodb";
+import Package from "@/models/package";
 import { isValidObjectId } from "mongoose";
 
 export async function GET(req, { params }) {

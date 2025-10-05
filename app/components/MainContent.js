@@ -28,36 +28,14 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import StarIcon from '@mui/icons-material/Star';
+import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
+import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import { useAuth } from '../../context/AuthContext';
-import { api, withBasePath } from '../../lib/path';
 import { useRouter } from 'next/navigation';
 import Alert from '@mui/material/Alert';
 import Link from 'next/link';
 
-const cruiseData = {
-  img: '/img/wp1.png',
-  tag: 'Bangkok',
-  title: 'Emerald River Cruise in Bangkok',
-  rating: 4.5,
-  reviews: 16500,
-  booked: '400,000+',
-  duration: '1hr 30min - 5hr 30min',
-  price: 899.99,
-  currency: 'THB',
-  location: 'Bangkok',
-  features: ['English', 'Join in group', 'Meet at location'],
-  highlights: [
-    'View historic Bangkok landmarks, such as Wat Kanlaya, Wat Arun and Grand Palace, on a grand cruise ride',
-    'Feast on a 2-hour dinner buffet, a fusion of different cuisines from all over the world'
-  ],
-  gallery: [
-    '/img/wp1.png',
-    '/img/wp2.png',
-    '/img/wp3.png',
-    '/img/wp4.png',
-    '/img/wp5.png',
-  ]
-};
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 // Default package options as fallback
 const defaultPackageOptions = [
@@ -70,76 +48,6 @@ const defaultPackageOptions = [
     selected: true
   }
 ];
-
-const packageDetails = [
-  'Book now for today',
-  'Free cancellation (24 hours notice)',
-  'Valid on the selected date',
-  'Instant confirmation'
-];
-
-const sampleReviews = [
-  {
-    id: 1,
-    name: 'Sarah Johnson',
-    rating: 5,
-    date: '2 days ago',
-    comment: 'Amazing experience! The sunset views were breathtaking and the food was delicious. Highly recommend!',
-    avatar: 'https://picsum.photos/40/40?random=10'
-  },
-  {
-    id: 2,
-    name: 'Michael Chen',
-    rating: 4,
-    date: '1 week ago',
-    comment: 'Great cruise with beautiful views of Bangkok. The buffet had good variety. Staff was friendly and helpful.',
-    avatar: 'https://picsum.photos/40/40?random=11'
-  },
-  {
-    id: 3,
-    name: 'Emma Rodriguez',
-    rating: 5,
-    date: '2 weeks ago',
-    comment: 'Perfect romantic evening! The city lights were magical. Will definitely book again for special occasions.',
-    avatar: 'https://picsum.photos/40/40?random=12'
-  }
-];
-
-const SyledCard = styled(Card)(({ theme }) => ({
-  display: 'flex',
-  flexDirection: 'column',
-  padding: 0,
-  height: '100%',
-  backgroundColor: (theme.vars || theme).palette.background.paper,
-  '&:hover': {
-    backgroundColor: 'transparent',
-    cursor: 'pointer',
-  },
-  '&:focus-visible': {
-    outline: '3px solid',
-    outlineColor: 'hsla(210, 98%, 48%, 0.5)',
-    outlineOffset: '2px',
-  },
-}));
-
-const SyledCardContent = styled(CardContent)({
-  display: 'flex',
-  flexDirection: 'column',
-  gap: 4,
-  padding: 16,
-  flexGrow: 1,
-  '&:last-child': {
-    paddingBottom: 16,
-  },
-});
-
-const StyledTypography = styled(Typography)({
-  display: '-webkit-box',
-  WebkitBoxOrient: 'vertical',
-  WebkitLineClamp: 2,
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-});
 
 function Author({ authors }) {
   return (
@@ -206,7 +114,7 @@ export function Search() {
 }
 
 export default function MainContent() {
-  const [selectedImage, setSelectedImage] = React.useState(cruiseData.img);
+  const [selectedImage, setSelectedImage] = React.useState('/img/wp1.png');
   const [selectedPackage, setSelectedPackage] = React.useState(1);
   const [selectedDate, setSelectedDate] = React.useState('');
   const [numberOfGuests, setNumberOfGuests] = React.useState(1);
@@ -220,31 +128,105 @@ export default function MainContent() {
   const [reviewSubmitting, setReviewSubmitting] = React.useState(false);
   const [reviewError, setReviewError] = React.useState('');
   const [reviewSuccess, setReviewSuccess] = React.useState('');
+  const [showAllReviews, setShowAllReviews] = React.useState(false);
   const [packageOptions, setPackageOptions] = React.useState(defaultPackageOptions);
   const [packagesLoading, setPackagesLoading] = React.useState(true);
   const [realStats, setRealStats] = React.useState({
-    totalReviews: 16500,
-    averageRating: 4.5,
-    totalBookings: '400,000+'
+    totalReviews: 0,
+    averageRating: 0,
+    totalBookings: '0'
   });
   const [statsLoading, setStatsLoading] = React.useState(true);
+  const [showMoreHighlights, setShowMoreHighlights] = React.useState(false);
+  const [cruiseData, setCruiseData] = React.useState(null);
+  const [allCruises, setAllCruises] = React.useState([]);
+  const [currentCruiseIndex, setCurrentCruiseIndex] = React.useState(0);
+  const [cruiseLoading, setCruiseLoading] = React.useState(true);
   
   const { user } = useAuth();
   const router = useRouter();
+  
+  // Navigation functions
+  const goToPreviousCruise = () => {
+    if (allCruises.length > 0) {
+      const newIndex = currentCruiseIndex === 0 ? allCruises.length - 1 : currentCruiseIndex - 1;
+      setCurrentCruiseIndex(newIndex);
+      const cruise = allCruises[newIndex];
+      setCruiseData(cruise);
+      setSelectedImage(cruise.images?.main || '/img/wp1.png');
+      // Update stats for the new cruise
+      fetchStats(cruise._id);
+    }
+  };
+
+  const goToNextCruise = () => {
+    if (allCruises.length > 0) {
+      const newIndex = currentCruiseIndex === allCruises.length - 1 ? 0 : currentCruiseIndex + 1;
+      setCurrentCruiseIndex(newIndex);
+      const cruise = allCruises[newIndex];
+      setCruiseData(cruise);
+      setSelectedImage(cruise.images?.main || '/img/wp1.png');
+      // Update stats for the new cruise
+      fetchStats(cruise._id);
+    }
+  };
+
+  // Fetch cruise data from API
+  React.useEffect(() => {
+    const fetchCruiseData = async () => {
+      try {
+        setCruiseLoading(true);
+        const response = await fetch(`${API_BASE}/cruise`);
+        const cruises = await response.json();
+        
+        // Store all cruises and use the first one
+        if (cruises && cruises.length > 0) {
+          setAllCruises(cruises);
+          const cruise = cruises[0];
+          setCruiseData(cruise);
+          setCurrentCruiseIndex(0);
+          setSelectedImage(cruise.images?.main || '/img/wp1.png');
+        } else {
+          // Fallback to static data
+          setCruiseData(cruiseData);
+          setAllCruises([]);
+        }
+      } catch (error) {
+        console.error('Failed to fetch cruise data:', error);
+        // Fallback to static data
+        setCruiseData(cruiseData);
+        setAllCruises([]);
+      } finally {
+        setCruiseLoading(false);
+      }
+    };
+    
+    fetchCruiseData();
+  }, []);
   
   // Fetch real reviews from the API
   React.useEffect(() => {
     const fetchReviews = async () => {
       try {
         setReviewsLoading(true);
-        const response = await fetch(api('/api/review'));
+        const response = await fetch(`${API_BASE}/review`);
         const data = await response.json();
         
-        // Get the 3 most recent reviews
-        const recentReviews = data.slice(0, 3);
-        setReviews(recentReviews);
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to fetch reviews');
+        }
+        
+        // Ensure data is an array before setting reviews
+        if (Array.isArray(data)) {
+          // Get all reviews (remove the slice limit)
+          setReviews(data);
+        } else {
+          console.error('Reviews data is not an array:', data);
+          setReviews([]);
+        }
       } catch (error) {
         console.error('Failed to fetch reviews:', error);
+        setReviews([]); // Set empty array on error
       } finally {
         setReviewsLoading(false);
       }
@@ -253,53 +235,136 @@ export default function MainContent() {
     fetchReviews();
   }, []);
   
+  // Fetch real statistics from database for specific cruise
+  const fetchStats = async (cruiseId = null) => {
+    try {
+      setStatsLoading(true);
+      
+      console.log('Fetching stats for cruise ID:', cruiseId);
+      
+      // Fetch all reviews and filter by cruise if cruiseId provided
+      const reviewsResponse = await fetch(`${API_BASE}/review`);
+      const reviewsData = await reviewsResponse.json();
+      
+      // Fetch all bookings and filter by cruise if cruiseId provided
+      const bookingsResponse = await fetch(`${API_BASE}/booking`);
+      const bookingsData = await bookingsResponse.json();
+      
+      // Ensure we have valid arrays
+      const allReviews = Array.isArray(reviewsData) ? reviewsData : [];
+      const allBookings = Array.isArray(bookingsData) ? bookingsData : [];
+      
+      console.log('Total reviews from database:', allReviews.length);
+      console.log('Total bookings from database:', allBookings.length);
+      
+      // Filter by cruise if cruiseId is provided
+      const validReviews = cruiseId 
+        ? allReviews.filter(review => {
+            // Check multiple possible formats for cruiseId
+            const reviewCruiseId = review.cruiseId;
+            if (!reviewCruiseId) return false;
+            
+            // Handle both string and object formats
+            const reviewCruiseIdStr = reviewCruiseId._id ? reviewCruiseId._id.toString() : reviewCruiseId.toString();
+            const targetCruiseIdStr = cruiseId.toString();
+            
+            console.log('Comparing review cruiseId:', reviewCruiseIdStr, 'with target:', targetCruiseIdStr);
+            return reviewCruiseIdStr === targetCruiseIdStr;
+          })
+        : allReviews;
+      
+      // For bookings, check if cruiseId field exists, otherwise use all bookings for fallback
+      const validBookings = cruiseId 
+        ? allBookings.filter(booking => {
+            const bookingCruiseId = booking.cruiseId;
+            if (!bookingCruiseId) return false;
+            
+            // Handle both string and object formats
+            const bookingCruiseIdStr = bookingCruiseId._id ? bookingCruiseId._id.toString() : bookingCruiseId.toString();
+            const targetCruiseIdStr = cruiseId.toString();
+            
+            console.log('Comparing booking cruiseId:', bookingCruiseIdStr, 'with target:', targetCruiseIdStr);
+            return bookingCruiseIdStr === targetCruiseIdStr;
+          })
+        : allBookings;
+      
+      console.log('Filtered reviews for cruise:', validReviews.length);
+      console.log('Filtered bookings for cruise:', validBookings.length);
+      console.log('Booking details:', validBookings.map(b => ({ 
+        id: b._id, 
+        guests: b.numberOfGuests, 
+        cruiseId: b.cruiseId,
+        date: b.cruiseDate 
+      })));
+      
+      // Calculate statistics
+      const totalReviews = validReviews.length;
+      const averageRating = totalReviews > 0 
+        ? (validReviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews)
+        : 4.2; // Default to 4.2 as requested
+      
+      // Calculate total guests from filtered bookings - only show cruise-specific data
+      let totalGuests = 0;
+      let totalBookingsFormatted = '0';
+      
+      if (cruiseId) {
+        // We're looking at a specific cruise - only show its bookings
+        if (validBookings.length > 0) {
+          // We have actual bookings for this specific cruise
+          totalGuests = validBookings.reduce((sum, booking) => sum + (booking.numberOfGuests || 1), 0);
+          totalBookingsFormatted = totalGuests > 1000 
+            ? `${Math.floor(totalGuests / 1000)}k+`
+            : `${totalGuests}+`;
+          console.log(`Found ${validBookings.length} bookings with ${totalGuests} total guests for this cruise`);
+        } else {
+          // No bookings found for this specific cruise
+          totalBookingsFormatted = '0';
+          console.log('No bookings found for this specific cruise');
+        }
+      } else {
+        // No specific cruise selected - show placeholder
+        totalBookingsFormatted = '32+';
+        console.log('No specific cruise selected, showing default');
+      }
+      
+      console.log('Final stats:', { totalReviews, averageRating, totalBookingsFormatted, totalGuests });
+      
+      setRealStats({
+        totalReviews,
+        averageRating: parseFloat(averageRating.toFixed(1)),
+        totalBookings: totalBookingsFormatted
+      });
+    } catch (error) {
+      console.error('Failed to fetch statistics:', error);
+      // Set default values with 4.2 rating as requested
+      setRealStats({
+        totalReviews: 5,
+        averageRating: 4.2,
+        totalBookings: '32+'
+      });
+    } finally {
+      setStatsLoading(false);
+    }
+  };
+
   // Fetch real statistics from database
   React.useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        setStatsLoading(true);
-        
-        // Fetch all reviews to calculate total count and average rating
-        const reviewsResponse = await fetch(api('/api/review'));
-        const reviewsData = await reviewsResponse.json();
-        
-        // Fetch all bookings to calculate total bookings
-        const bookingsResponse = await fetch(api('/api/booking'));
-        const bookingsData = await bookingsResponse.json();
-        
-        // Calculate statistics
-        const totalReviews = reviewsData.length;
-        const averageRating = totalReviews > 0 
-          ? (reviewsData.reduce((sum, review) => sum + review.rating, 0) / totalReviews).toFixed(1)
-          : 4.5;
-        
-        // Calculate total guests from all bookings
-        const totalGuests = bookingsData.reduce((sum, booking) => sum + (booking.numberOfGuests || 1), 0);
-        const totalBookingsFormatted = totalGuests > 1000 
-          ? `${Math.floor(totalGuests / 1000)}k+`
-          : `${totalGuests}+`;
-        
-        setRealStats({
-          totalReviews,
-          averageRating: parseFloat(averageRating),
-          totalBookings: totalBookingsFormatted
-        });
-      } catch (error) {
-        console.error('Failed to fetch statistics:', error);
-        // Keep default values on error
-      } finally {
-        setStatsLoading(false);
-      }
-    };
-    
+    // Initial load with all cruises data
     fetchStats();
   }, []);
+
+  // Update stats when cruise changes
+  React.useEffect(() => {
+    if (cruiseData && cruiseData._id) {
+      fetchStats(cruiseData._id);
+    }
+  }, [cruiseData]);
   
   // Fetch package options from API
   React.useEffect(() => {
     const fetchPackages = async () => {
       try {
-        const response = await fetch(api('/api/package'));
+        const response = await fetch(`${API_BASE}/package`);
         if (response.ok) {
           const data = await response.json();
           // Transform API data to match the expected format
@@ -327,6 +392,10 @@ export default function MainContent() {
   }, []);
 
   const handleSubmitReview = async () => {
+    console.log('Starting review submission...');
+    console.log('User:', user);
+    console.log('Cruise data:', cruiseData);
+    
     if (!user) {
       setReviewError('Please log in to submit a review');
       setTimeout(() => router.push('/login'), 1500);
@@ -336,20 +405,34 @@ export default function MainContent() {
       setReviewError('Please enter your review comment');
       return;
     }
+    if (!cruiseData || !cruiseData._id) {
+      setReviewError('No cruise selected for review');
+      return;
+    }
+    
+    const reviewPayload = {
+      userId: user._id,
+      cruiseId: cruiseData._id,
+      rating: newReviewRating,
+      comment: newReviewComment.trim(),
+    };
+    
+    console.log('Review payload:', reviewPayload);
+    
     setReviewSubmitting(true);
     setReviewError('');
     setReviewSuccess('');
     try {
-      const response = await fetch(api('/api/review'), {
+      const response = await fetch(`${API_BASE}/review`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          customerId: user._id,
-          rating: newReviewRating,
-          comment: newReviewComment.trim(),
-        })
+        body: JSON.stringify(reviewPayload)
       });
+      
+      console.log('Response status:', response.status);
       const created = await response.json();
+      console.log('Response data:', created);
+      
       if (!response.ok) {
         throw new Error(created.error || 'Failed to submit review');
       }
@@ -371,6 +454,9 @@ export default function MainContent() {
   };
 
   const handleBooking = async () => {
+    console.log('Starting booking submission...');
+    console.log('User:', user);
+    
     if (!user) {
       setBookingError('Please log in to make a booking');
       setTimeout(() => router.push('/login'), 2000);
@@ -393,23 +479,30 @@ export default function MainContent() {
 
     // Find the selected package
     const selectedPackageData = packageOptions.find(pkg => pkg.id === selectedPackage) || packageOptions[0];
+    
+    const bookingPayload = {
+      userId: user._id,
+      cruiseId: cruiseData._id,
+      cruiseDate: selectedDate,
+      numberOfGuests: numberOfGuests,
+      packageType: selectedPackageData.name,
+      cruisingTime: selectedPackageData.time,
+    };
+    
+    console.log('Booking payload:', bookingPayload);
 
     try {
-      const response = await fetch(api('/api/booking'), {
+      const response = await fetch(`${API_BASE}/booking`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          customerId: user._id,
-          cruiseDate: selectedDate,
-          numberOfGuests: numberOfGuests,
-          packageType: selectedPackageData.name,
-          cruisingTime: selectedPackageData.time,
-        }),
+        body: JSON.stringify(bookingPayload),
       });
 
+      console.log('Booking response status:', response.status);
       const data = await response.json();
+      console.log('Booking response data:', data);
 
       if (response.ok) {
         setBookingSuccess('Booking confirmed! Your cruise is reserved.');
@@ -432,87 +525,245 @@ export default function MainContent() {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      {/* Header Section */}
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h3" gutterBottom>
-          {cruiseData.title}
-        </Typography>
-        
-        {/* Feature tags, duration, rating, bookings, and location intentionally removed */}
-      </Box>
+      {cruiseLoading || !cruiseData ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+          <Typography>Loading cruise information...</Typography>
+        </Box>
+      ) : (
+        <>
+          {/* Header Section */}
+          <Box>
+            <Typography variant="h3" gutterBottom>
+              {cruiseData?.title || 'Emerald River Cruise in Bangkok'}
+            </Typography>
+            
+            {/* Description */}
+            {cruiseData?.description && (
+              <Typography variant="body1" sx={{ mb: 2, color: 'text.secondary' }}>
+                {cruiseData.description}
+              </Typography>
+            )}
+            
+            {/* Feature tags */}
+            <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
+              <Chip label={cruiseData?.tag || 'Bangkok'} color="primary" size="small" />
+              {(cruiseData?.features || ['English', 'Join in group', 'Meet at location']).map((feature, index) => (
+                <Chip key={index} label={feature} variant="outlined" size="small" />
+              ))}
+            </Box>
 
-      <Grid container spacing={4}>
-        {/* Left Column - Images and Highlights */}
-        <Grid item xs={12} md={8}>
-          {/* Main Image */}
-          <Box sx={{ position: 'relative', mb: 2 }}>
+            {/* Duration, Rating, Bookings, and Location */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap' }}>
+              {/* Duration */}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <AccessTimeIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                <Typography variant="body2" color="text.secondary">
+                  {cruiseData?.duration || '1hr 30min - 5hr 30min'}
+                </Typography>
+              </Box>
+
+              {/* Rating */}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <StarIcon sx={{ fontSize: 16, color: 'gold' }} />
+                <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                  {statsLoading ? (cruiseData?.rating || 4.5) : realStats.averageRating}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  ({statsLoading ? (cruiseData?.totalReviews || 16500).toLocaleString() : realStats.totalReviews.toLocaleString()} reviews)
+                </Typography>
+              </Box>
+
+              {/* Location */}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <Typography variant="body2" color="text.secondary">
+                  📍 {cruiseData?.location || 'Bangkok'}
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+
+          {/* Main Image with Navigation Arrows */}
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 3, gap: 2 }}>
+            {/* Previous Arrow */}
+            <IconButton
+              onClick={goToPreviousCruise}
+              disabled={allCruises.length <= 1}
+              sx={{
+                backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                color: 'white',
+                '&:hover': {
+                  backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                },
+                '&:disabled': {
+                  backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                  color: 'rgba(255, 255, 255, 0.3)',
+                }
+              }}
+            >
+              <ArrowBackIosIcon />
+            </IconButton>
+
+            {/* Main Image */}
             <CardMedia
               component="img"
-              alt="Bangkok River Cruise"
-              image={withBasePath(selectedImage)}
+              alt={cruiseData?.title || 'Cruise Image'}
+              image={selectedImage}
               sx={{
                 width: '100%',
+                maxWidth: '800px',
                 height: 400,
                 borderRadius: 2,
                 objectFit: 'cover'
               }}
             />
-            {/* Removed play button overlay */}
+
+            {/* Next Arrow */}
+            <IconButton
+              onClick={goToNextCruise}
+              disabled={allCruises.length <= 1}
+              sx={{
+                backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                color: 'white',
+                '&:hover': {
+                  backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                },
+                '&:disabled': {
+                  backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                  color: 'rgba(255, 255, 255, 0.3)',
+                }
+              }}
+            >
+              <ArrowForwardIosIcon />
+            </IconButton>
           </Box>
 
-          {/* Image Gallery (clean) */}
-          <Box sx={{ display: 'flex', gap: 1, mb: 3, overflow: 'auto' }}>
-            {cruiseData.gallery.map((img, index) => (
-              <CardMedia
-                key={index}
-                component="img"
-                alt={`Gallery ${index + 1}`}
-                image={withBasePath(img)}
-                onClick={() => setSelectedImage(img)}
-                sx={{
-                  width: 120,
-                  height: 80,
-                  borderRadius: 1,
-                  objectFit: 'cover',
-                  cursor: 'pointer',
-                  outline: selectedImage === img ? '2px solid orange' : 'none'
-                }}
-              />
-            ))}
-          </Box>
-
-          {/* Highlights */}
-          <Card sx={{ mb: 3, backgroundColor: '#f8f9fa' }}>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Cruise Highlights
+          {/* Cruise Navigation Indicator */}
+          {allCruises.length > 1 && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+              <Typography variant="body2" color="text.secondary">
+                {currentCruiseIndex + 1} of {allCruises.length} cruises
               </Typography>
-              {cruiseData.highlights.map((highlight, index) => (
-                <Typography key={index} variant="body2" sx={{ mb: 1, display: 'flex', alignItems: 'flex-start' }}>
-                  <StarIcon sx={{ color: 'orange', mr: 1, mt: 0.2, fontSize: 16 }} />
-                  {highlight}
-                </Typography>
-              ))}
-              <Button size="small" sx={{ mt: 1 }}>
-                See more
-              </Button>
-            </CardContent>
-          </Card>
-        </Grid>
+            </Box>
+          )}
 
-        {/* Right Column - Booking Section */}
-        <Grid item xs={12} md={4} id="booking">
-          <Card sx={{ position: 'sticky', top: 20 }}>
-            <CardContent>
-              {/* Price */}
-              <Box sx={{ textAlign: 'center', mb: 3 }}>
-                <Typography variant="h4" color="primary">
-                  ฿{cruiseData.price}
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                  per person
-                </Typography>
-              </Box>
+          {/* Image Gallery - Centered */}
+          <Box sx={{ display: 'flex', gap: 1, mb: 3, overflow: 'auto', justifyContent: 'center' }}>
+            {(() => {
+              // Combine main image and gallery images
+              const allImages = [];
+              if (cruiseData?.images?.main) {
+                allImages.push(cruiseData.images.main);
+              }
+              if (cruiseData?.images?.gallery) {
+                allImages.push(...cruiseData.images.gallery);
+              }
+              // Fallback images if no cruise data
+              if (allImages.length === 0) {
+                allImages.push('/img/wp1.png', '/img/wp2.png', '/img/wp3.png', '/img/wp4.png', '/img/wp5.png');
+              }
+              
+              return allImages.map((img, index) => (
+                <CardMedia
+                  key={index}
+                  component="img"
+                  alt={`Gallery ${index + 1}`}
+                  image={img}
+                  onClick={() => setSelectedImage(img)}
+                  sx={{
+                    width: 120,
+                    height: 80,
+                    borderRadius: 1,
+                    objectFit: 'cover',
+                    cursor: 'pointer',
+                    outline: selectedImage === img ? '2px solid orange' : 'none'
+                  }}
+                />
+              ));
+            })()}
+          </Box>
+
+          <Grid container spacing={4} sx={{ alignItems: 'center' }}>
+            {/* Left Column - Highlights */}
+            <Grid item xs={12} md={8}>
+              {/* Highlights */}
+              <Card sx={{ mb: 3, backgroundColor: '#f8f9fa' }}>
+                <CardContent>
+                  <Typography variant="h6" gutterBottom>
+                    Cruise Highlights
+                  </Typography>
+                  {(showMoreHighlights ? 
+                    (cruiseData?.highlights || []) : 
+                    (cruiseData?.highlights || []).slice(0, 2)
+                  ).map((highlight, index) => (
+                    <Typography key={index} variant="body2" sx={{ mb: 1, display: 'flex', alignItems: 'flex-start' }}>
+                      <StarIcon sx={{ color: 'orange', mr: 1, mt: 0.2, fontSize: 16 }} />
+                      {highlight}
+                    </Typography>
+                  ))}
+                  {cruiseData?.highlights && cruiseData.highlights.length > 2 && (
+                    <Button 
+                      size="small" 
+                      sx={{ mt: 1 }}
+                      onClick={() => setShowMoreHighlights(!showMoreHighlights)}
+                    >
+                      {showMoreHighlights ? 'See less' : 'See more'}
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
+            </Grid>
+
+            {/* Right Column - Booking Section */}
+            <Grid item xs={12} md={4} id="booking">
+              <Card sx={{ position: 'sticky', top: 20 }}>
+                <CardContent>
+                  {/* Cruise Navigation for Booking */}
+                  {allCruises.length > 1 && (
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2, p: 1, bgcolor: 'action.hover', borderRadius: 1 }}>
+                      <IconButton
+                        onClick={goToPreviousCruise}
+                        size="small"
+                        sx={{
+                          backgroundColor: 'primary.main',
+                          color: 'white',
+                          '&:hover': {
+                            backgroundColor: 'primary.dark',
+                          }
+                        }}
+                      >
+                        <ArrowBackIosIcon fontSize="small" />
+                      </IconButton>
+                      <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center' }}>
+                        Cruise {currentCruiseIndex + 1} of {allCruises.length}
+                      </Typography>
+                      <IconButton
+                        onClick={goToNextCruise}
+                        size="small"
+                        sx={{
+                          backgroundColor: 'primary.main',
+                          color: 'white',
+                          '&:hover': {
+                            backgroundColor: 'primary.dark',
+                          }
+                        }}
+                      >
+                        <ArrowForwardIosIcon fontSize="small" />
+                      </IconButton>
+                    </Box>
+                  )}
+                  
+                  {/* Price */}
+                  <Box sx={{ textAlign: 'center', mb: 3 }}>
+                    <Typography variant="h3" color="primary" sx={{ fontWeight: 'bold' }}>
+                      {cruiseData?.title || ''}
+                    </Typography>
+                    <Typography variant="h4" color="primary">
+                      {cruiseData?.currency || 'THB'}฿{cruiseData?.price || 899.99}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                      per person
+                    </Typography>
+                  </Box>
 
               {/* Package Options */}
               <Box sx={{ mb: 3 }}>
@@ -610,22 +861,61 @@ export default function MainContent() {
                   {bookingLoading ? 'Confirming Booking...' : 'Confirm Booking'}
                 </Button>
               </Box>
-
             </CardContent>
           </Card>
         </Grid>
       </Grid>
 
-      {/* Customer Reviews */}
+      {/* Customer Reviews Section */}
       <Box sx={{ mt: 4 }}>
-        <Typography variant="h5" gutterBottom>
-          Customer Reviews
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+          <Typography variant="h5">
+            Customer Reviews
+          </Typography>
+          {/* Cruise Navigation for Reviews */}
+          {allCruises.length > 1 && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 1, bgcolor: 'action.hover', borderRadius: 1 }}>
+              <IconButton
+                onClick={goToPreviousCruise}
+                size="small"
+                sx={{
+                  backgroundColor: 'primary.main',
+                  color: 'white',
+                  '&:hover': {
+                    backgroundColor: 'primary.dark',
+                  }
+                }}
+              >
+                <ArrowBackIosIcon fontSize="small" />
+              </IconButton>
+              <Typography variant="caption" color="text.secondary" sx={{ minWidth: '80px', textAlign: 'center' }}>
+                Cruise {currentCruiseIndex + 1} of {allCruises.length}
+              </Typography>
+              <IconButton
+                onClick={goToNextCruise}
+                size="small"
+                sx={{
+                  backgroundColor: 'primary.main',
+                  color: 'white',
+                  '&:hover': {
+                    backgroundColor: 'primary.dark',
+                  }
+                }}
+              >
+                <ArrowForwardIosIcon fontSize="small" />
+              </IconButton>
+            </Box>
+          )}
+        </Box>
+        
         {/* Add Review Form */}
-        <Card sx={{ mb: 2 }}>
+        <Card sx={{ mb: 3 }}>
           <CardContent>
             {user ? (
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Typography variant="h6" gutterBottom>
+                  Write a Review for {cruiseData?.title}
+                </Typography>
                 {reviewError && (
                   <Alert severity="error">{reviewError}</Alert>
                 )}
@@ -665,53 +955,123 @@ export default function MainContent() {
             )}
           </CardContent>
         </Card>
+
+        {/* Reviews Display */}
         {reviewsLoading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
             <Typography>Loading reviews...</Typography>
           </Box>
         ) : reviews.length > 0 ? (
-          <Grid container spacing={2}>
-            {reviews.map((review) => (
-              <Grid item xs={12} md={4} key={review._id}>
-                <Card>
-                  <CardContent>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                      <Avatar sx={{ mr: 2, bgcolor: 'primary.main' }}>
-                        {review.customerId?.name ? review.customerId.name.charAt(0).toUpperCase() : '?'}
-                      </Avatar>
-                      <Box>
-                        <Typography variant="subtitle2">{review.customerId?.name || 'Anonymous'}</Typography>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Rating value={review.rating} readOnly size="small" />
-                          <Typography variant="caption" color="text.secondary">
-                            {new Date(review.createdAt).toLocaleDateString()}
-                          </Typography>
-                        </Box>
+          <Box>
+            {/* Filter Toggle Buttons */}
+            <Box sx={{ display: 'flex', gap: 2, mb: 3, alignItems: 'center' }}>
+              <Button
+                variant={!showAllReviews ? "contained" : "outlined"}
+                onClick={() => setShowAllReviews(false)}
+                size="small"
+              >
+                This Cruise ({(() => {
+                  const currentCruiseReviews = reviews.filter(review => 
+                    review.cruiseId && cruiseData && review.cruiseId._id === cruiseData._id
+                  );
+                  return currentCruiseReviews.length;
+                })()})
+              </Button>
+              <Button
+                variant={showAllReviews ? "contained" : "outlined"}
+                onClick={() => setShowAllReviews(true)}
+                size="small"
+              >
+                All Reviews ({reviews.length})
+              </Button>
+            </Box>
+
+            <Grid container spacing={2}>
+              {(() => {
+                // Filter reviews based on showAllReviews state
+                const filteredReviews = showAllReviews 
+                  ? reviews 
+                  : reviews.filter(review => 
+                      review.cruiseId && cruiseData && review.cruiseId._id === cruiseData._id
+                    );
+
+                // Show message if no reviews for current cruise
+                if (!showAllReviews && filteredReviews.length === 0) {
+                  return (
+                    <Grid item xs={12}>
+                      <Box sx={{ textAlign: 'center', p: 3 }}>
+                        <Typography variant="body1" color="text.secondary">
+                          No reviews yet for this cruise. Be the first to share your experience!
+                        </Typography>
                       </Box>
-                    </Box>
-                    <Typography variant="body2">
-                      {review.comment}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
+                    </Grid>
+                  );
+                }
+
+                return filteredReviews.map((review) => (
+                  <Grid item xs={12} md={4} key={review._id}>
+                    <Card sx={{ height: '100%' }}>
+                      <CardContent>
+                        {/* Cruise Information */}
+                        {review.cruiseId && (
+                          <Box sx={{ mb: 2, p: 1, bgcolor: 'action.hover', borderRadius: 1 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              {review.cruiseId.images?.main && (
+                                <img 
+                                  src={review.cruiseId.images.main} 
+                                  alt={review.cruiseId.title}
+                                  style={{ 
+                                    width: 32, 
+                                    height: 32, 
+                                    borderRadius: 4, 
+                                    objectFit: 'cover' 
+                                  }}
+                                />
+                              )}
+                              <Typography variant="caption" color="primary" sx={{ fontWeight: 'bold' }}>
+                                📍 {review.cruiseId.title}
+                              </Typography>
+                            </Box>
+                          </Box>
+                        )}
+                        
+                        {/* User Info and Rating */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                          <Avatar sx={{ mr: 2, bgcolor: 'primary.main' }}>
+                            {review.userId?.name ? review.userId.name.charAt(0).toUpperCase() : '?'}
+                          </Avatar>
+                          <Box sx={{ flex: 1 }}>
+                            <Typography variant="subtitle2">{review.userId?.name || 'Anonymous'}</Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Rating value={review.rating} readOnly size="small" />
+                              <Typography variant="caption" color="text.secondary">
+                                {new Date(review.createdAt).toLocaleDateString()}
+                              </Typography>
+                            </Box>
+                          </Box>
+                        </Box>
+                        
+                        {/* Review Comment */}
+                        <Typography variant="body2" sx={{ lineHeight: 1.6 }}>
+                          {review.comment}
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ));
+              })()}
+            </Grid>
+          </Box>
         ) : (
           <Box sx={{ textAlign: 'center', p: 3 }}>
-            <Typography variant="body1">No reviews yet. Be the first to share your experience!</Typography>
+            <Typography variant="body1" color="text.secondary">
+              No reviews yet. Be the first to share your experience!
+            </Typography>
           </Box>
         )}
-        <Box sx={{ textAlign: 'center', mt: 2 }}>
-          <Button 
-            variant="outlined"
-            component={Link}
-            href="/reviews"
-          >
-            View All Reviews
-          </Button>
-        </Box>
       </Box>
+        </>
+      )}
     </Box>
   );
 }

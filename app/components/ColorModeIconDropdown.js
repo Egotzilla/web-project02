@@ -45,11 +45,18 @@ export default function ColorModeIconDropdown({ size = 'small' }) {
       <IconButton
         size={size}
         onClick={handleClick}
-        color="inherit"
         aria-label="Color mode settings"
         aria-controls={open ? 'color-mode-menu' : undefined}
         aria-haspopup="true"
         aria-expanded={open ? 'true' : undefined}
+        sx={{
+          color: theme.palette.mode === 'light' ? 'black' : 'white',
+          '&:hover': {
+            backgroundColor: theme.palette.mode === 'light' 
+              ? 'rgba(0, 0, 0, 0.04)' 
+              : 'rgba(255, 255, 255, 0.04)',
+          },
+        }}
       >
         {getIcon()}
       </IconButton>

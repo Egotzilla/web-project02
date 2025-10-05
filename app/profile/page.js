@@ -32,7 +32,8 @@ import Footer from "../components/Footer";
 import { useAuth } from "../../context/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { api } from "../../lib/path";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 export default function ProfilePage() {
   const { user, isAdmin } = useAuth();
@@ -59,8 +60,8 @@ export default function ProfilePage() {
     try {
       // Fetch user's bookings and reviews
       const [bookingsRes, reviewsRes] = await Promise.all([
-        fetch(api("/api/booking")),
-        fetch(api("/api/review")),
+        fetch(`${API_BASE}/booking`),
+        fetch(`${API_BASE}/review`),
       ]);
 
       const allBookings = await bookingsRes.json();
@@ -68,20 +69,26 @@ export default function ProfilePage() {
       
       console.log("Current user ID:", user._id);
       console.log("All bookings:", allBookings);
+      console.log("All reviews:", allReviews);
 
       // Filter bookings and reviews for current user
       const userBookings = allBookings.filter((booking) => {
-        // Handle both populated and non-populated customerId
-        const bookingCustomerId = booking.customerId?._id || booking.customerId;
+        // Handle both populated and non-populated userId
+        const bookingUserId = booking.userId?._id || booking.userId;
         // Convert to string for reliable comparison
-        return bookingCustomerId && bookingCustomerId.toString() === user._id.toString();
+        console.log("Comparing booking userId:", bookingUserId, "with user ID:", user._id);
+        return bookingUserId && bookingUserId.toString() === user._id.toString();
       });
       const userReviews = allReviews.filter((review) => {
-        // Handle both populated and non-populated customerId
-        const reviewCustomerId = review.customerId?._id || review.customerId;
+        // Handle both populated and non-populated userId
+        const reviewUserId = review.userId?._id || review.userId;
         // Convert to string for reliable comparison
-        return reviewCustomerId && reviewCustomerId.toString() === user._id.toString();
+        console.log("Comparing review userId:", reviewUserId, "with user ID:", user._id);
+        return reviewUserId && reviewUserId.toString() === user._id.toString();
       });
+
+      console.log("Filtered user bookings:", userBookings);
+      console.log("Filtered user reviews:", userReviews);
 
       setBookings(userBookings);
       setReviews(userReviews);
@@ -107,9 +114,9 @@ export default function ProfilePage() {
   return (
     <AppTheme>
       <AppAppBar />
-      <Container maxWidth="lg" sx={{ my: 4 }}>
+      <Container maxWidth="lg" sx={{ my: 4, paddingTop: 10 }}>
         {/* Header */}
-        <Box sx={{ mb: 4 }}>
+        <Box sx={{ mb: 4 , textAlign: "center" }}>
           <Typography variant="h3" component="h1" gutterBottom>
             My Profile
           </Typography>
@@ -118,7 +125,7 @@ export default function ProfilePage() {
           </Typography>
         </Box>
 
-        <Grid container spacing={3}>
+        <Grid container spacing={3} sx={{ justifyContent: "center" }}>
           {/* User Information */}
           <Grid item xs={12} md={4}>
             <Card>
@@ -195,8 +202,8 @@ export default function ProfilePage() {
                           <ListItemText
                             primary={
                               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                                <Typography variant="h6">
-                                  Bangkok River Cruise
+                                <Typography variant="h6" component="span">
+                                  {booking.cruiseId?.title || booking.packageType || "Cruise Booking"}
                                 </Typography>
                                 <Chip
                                   label={new Date(booking.cruiseDate) > new Date() ? "Upcoming" : "Past"}
@@ -206,14 +213,23 @@ export default function ProfilePage() {
                               </Box>
                             }
                             secondary={
-                              <Box>
-                                <Typography variant="body2">
+                              <Box component="div">
+                                <Typography variant="body2" component="div">
                                   <strong>Date:</strong> {new Date(booking.cruiseDate).toLocaleDateString()}
                                 </Typography>
-                                <Typography variant="body2">
+                                <Typography variant="body2" component="div">
+                                  <strong>Time:</strong> {booking.cruisingTime || 'TBD'}
+                                </Typography>
+                                <Typography variant="body2" component="div">
+                                  <strong>Package:</strong> {booking.packageType || 'Standard'}
+                                </Typography>
+                                <Typography variant="body2" component="div">
                                   <strong>Guests:</strong> {booking.numberOfGuests} {booking.numberOfGuests === 1 ? 'person' : 'people'}
                                 </Typography>
-                                <Typography variant="body2">
+                                <Typography variant="body2" component="div">
+                                  <strong>Location:</strong> {booking.cruiseId?.location || 'Bangkok'}
+                                </Typography>
+                                <Typography variant="body2" component="div">
                                   <strong>Booked:</strong> {new Date(booking.createdAt).toLocaleDateString()}
                                 </Typography>
                               </Box>
@@ -262,8 +278,8 @@ export default function ProfilePage() {
                           <ListItemText
                             primary={
                               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                                <Typography variant="h6">
-                                  Bangkok River Cruise
+                                <Typography variant="h6" component="span">
+                                  {review.cruiseId?.title || review.packageType || "Cruise Review"}
                                 </Typography>
                                 <Box sx={{ display: "flex", alignItems: "center" }}>
                                   {Array.from({ length: 5 }, (_, i) => (
@@ -279,11 +295,11 @@ export default function ProfilePage() {
                               </Box>
                             }
                             secondary={
-                              <Box>
-                                <Typography variant="body2" sx={{ mb: 1 }}>
+                              <Box component="div">
+                                <Typography variant="body2" component="div" sx={{ mb: 1 }}>
                                   {review.comment}
                                 </Typography>
-                                <Typography variant="caption" color="text.secondary">
+                                <Typography variant="caption" component="div" color="text.secondary">
                                   Written on {new Date(review.createdAt).toLocaleDateString()}
                                 </Typography>
                               </Box>

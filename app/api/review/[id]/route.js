@@ -1,11 +1,14 @@
-import connectDB from "../../../../lib/mongodb";
-import Review from "../../../../models/review";
-import User from "../../../../models/user";
+import connectDB from "@/lib/mongodb";
+import Review from "@/models/review";
+import User from "@/models/user";
+import Cruise from "@/models/cruise";
 
 export async function GET(req, { params }) {
   try {
     await connectDB();
-    const review = await Review.findById(params.id).populate("customerId", "name email");
+    const review = await Review.findById(params.id)
+      .populate("userId", "name email")
+      .populate("cruiseId", "title location images.main");
     
     if (!review) {
       return new Response(JSON.stringify({ error: "Review not found" }), { status: 404 });
@@ -23,9 +26,9 @@ export async function PUT(req, { params }) {
     await connectDB();
     const data = await req.json();
 
-    const { customerId, rating, comment } = data;
-    if (!customerId || !rating || !comment) {
-      return new Response(JSON.stringify({ error: "Customer ID, rating, and comment are required" }), { status: 400 });
+    const { userId, cruiseId, rating, comment } = data;
+    if (!userId || !rating || !comment) {
+      return new Response(JSON.stringify({ error: "User ID, rating, and comment are required" }), { status: 400 });
     }
 
     // Validate rating
@@ -34,16 +37,39 @@ export async function PUT(req, { params }) {
     }
 
     // Check if user exists
-    const user = await User.findById(customerId);
+    const user = await User.findById(userId);
     if (!user) {
       return new Response(JSON.stringify({ error: "User not found" }), { status: 404 });
     }
 
+    // Check if cruise exists (only if cruiseId is provided)
+    if (cruiseId) {
+      const cruise = await Cruise.findById(cruiseId);
+      if (!cruise) {
+        return new Response(JSON.stringify({ error: "Cruise not found" }), { status: 404 });
+      }
+    }
+
+    const updateData = {
+      userId,
+      rating,
+      comment,
+    };
+
+    // Only add cruiseId if it's provided, otherwise remove it
+    if (cruiseId) {
+      updateData.cruiseId = cruiseId;
+    } else {
+      updateData.cruiseId = null;
+    }
+
     const review = await Review.findByIdAndUpdate(
       params.id,
-      { customerId, rating, comment },
+      updateData,
       { new: true }
-    ).populate("customerId", "name email");
+    )
+    .populate("userId", "name email")
+    .populate("cruiseId", "title location images.main");
 
     if (!review) {
       return new Response(JSON.stringify({ error: "Review not found" }), { status: 404 });

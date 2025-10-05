@@ -1,7 +1,9 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect } from 'react';
-import { api } from '../lib/path';
+import { useRouter } from 'next/navigation';
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 const AuthContext = createContext();
 
@@ -16,6 +18,7 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     // Check if user is logged in (from localStorage)
@@ -28,7 +31,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const response = await fetch(api('/api/auth/login'), {
+      const response = await fetch(`${API_BASE}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -52,7 +55,7 @@ export const AuthProvider = ({ children }) => {
 
   const adminLogin = async (username, password) => {
     try {
-      const response = await fetch(api('/api/auth/admin-login'), {
+      const response = await fetch(`${API_BASE}/auth/admin-login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -76,7 +79,7 @@ export const AuthProvider = ({ children }) => {
 
   const signup = async (name, email, password, phone) => {
     try {
-      const response = await fetch(api('/api/auth/signup'), {
+      const response = await fetch(`${API_BASE}/auth/signup`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -101,6 +104,7 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setUser(null);
     localStorage.removeItem('user');
+    router.push('/'); // Redirect to home page after logout
   };
 
   const isAdmin = () => {

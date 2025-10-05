@@ -1,9 +1,9 @@
 use('web-project02');
 
-// Show all customers
-const customers = db.customers.find().toArray();
-console.log("Customers:");
-console.log(customers);
+// Show all users
+const users = db.users.find().toArray();
+console.log("Users:");
+console.log(users);
 
 // Show all bookings
 const bookings = db.bookings.find().toArray();
@@ -16,21 +16,21 @@ console.log("Reviews:");
 console.log(reviews);
 
 
-// Show bookings with customer names
+// Show bookings with user names
 db.bookings.find().forEach(booking => {
-  const customer = db.customers.findOne({ _id: booking.customerId });
+  const user = db.users.findOne({ _id: booking.userId });
   console.log({
-    customerName: customer.name,
+    userName: user.name,
     cruiseDate: booking.cruiseDate,
     numberOfGuests: booking.numberOfGuests
   });
 });
 
-// Show reviews with customer names
+// Show reviews with user names
 db.reviews.find().forEach(review => {
-  const customer = db.customers.findOne({ _id: review.customerId });
+  const user = db.users.findOne({ _id: review.userId });
   console.log({
-    customerName: customer.name,
+    userName: user.name,
     rating: review.rating,
     comment: review.comment
   });

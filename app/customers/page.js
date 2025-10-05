@@ -29,10 +29,11 @@ import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from "@mui/ico
 import AppTheme from "../components/AppTheme";
 import AppAppBar from "../components/AppAppBar";
 import Footer from "../components/Footer";
-import { api } from "../../lib/path";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 export default function CustomersPage() {
-  const [customers, setCustomers] = useState([]);
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState(null);
@@ -44,18 +45,18 @@ export default function CustomersPage() {
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
   useEffect(() => {
-    fetchCustomers();
+    fetchUsers();
   }, []);
 
-  const fetchCustomers = async () => {
+  const fetchUsers = async () => {
     try {
-      const res = await fetch(api("/api/customer"));
-      if (!res.ok) throw new Error("Failed to fetch customers");
+      const res = await fetch(`${API_BASE}/user`);
+      if (!res.ok) throw new Error("Failed to fetch users");
       const data = await res.json();
-      setCustomers(data);
+      setUsers(data);
     } catch (err) {
       console.error(err);
-      showSnackbar("Failed to fetch customers", "error");
+      showSnackbar("Failed to fetch users", "error");
     } finally {
       setLoading(false);
     }
@@ -65,12 +66,12 @@ export default function CustomersPage() {
     setSnackbar({ open: true, message, severity });
   };
 
-  const handleOpen = (customer = null) => {
-    setEditingCustomer(customer);
+  const handleOpen = (user = null) => {
+    setEditingCustomer(user);
     setFormData({
-      name: customer?.name || "",
-      email: customer?.email || "",
-      phone: customer?.phone || "",
+      name: user?.name || "",
+      email: user?.email || "",
+      phone: user?.phone || "",
     });
     setOpen(true);
   };
@@ -85,10 +86,10 @@ export default function CustomersPage() {
     e.preventDefault();
     
     try {
-      const url = editingCustomer 
-        ? api(`/api/customer/${editingCustomer._id}`)
-        : api("/api/customer");
-      
+      const url = editingCustomer
+        ? `${API_BASE}/user/${editingCustomer._id}`
+        : `${API_BASE}/user`;
+
       const method = editingCustomer ? "PUT" : "POST";
       
       const res = await fetch(url, {
@@ -99,35 +100,35 @@ export default function CustomersPage() {
 
       if (!res.ok) {
         const error = await res.json();
-        throw new Error(error.error || "Failed to save customer");
+        throw new Error(error.error || "Failed to save user");
       }
 
       showSnackbar(
-        editingCustomer ? "Customer updated successfully" : "Customer created successfully"
+        editingCustomer ? "User updated successfully" : "User created successfully"
       );
       handleClose();
-      fetchCustomers();
+      fetchUsers();
     } catch (err) {
       console.error(err);
       showSnackbar(err.message, "error");
     }
   };
 
-  const handleDelete = async (customerId) => {
-    if (!confirm("Are you sure you want to delete this customer?")) return;
+  const handleDelete = async (userId) => {
+    if (!confirm("Are you sure you want to delete this user?")) return;
 
     try {
-      const res = await fetch(api(`/api/customer/${customerId}`), {
+      const res = await fetch(`${API_BASE}/user/${userId}`, {
         method: "DELETE",
       });
 
-      if (!res.ok) throw new Error("Failed to delete customer");
+      if (!res.ok) throw new Error("Failed to delete user");
 
-      showSnackbar("Customer deleted successfully");
-      fetchCustomers();
+      showSnackbar("User deleted successfully");
+      fetchUsers();
     } catch (err) {
       console.error(err);
-      showSnackbar("Failed to delete customer", "error");
+      showSnackbar("Failed to delete user", "error");
     }
   };
 
@@ -143,7 +144,7 @@ export default function CustomersPage() {
       <AppTheme>
         <AppAppBar />
         <Container maxWidth="lg" sx={{ my: 16 }}>
-          <Typography>Loading customers...</Typography>
+          <Typography>Loading users...</Typography>
         </Container>
         <Footer />
       </AppTheme>
@@ -156,14 +157,14 @@ export default function CustomersPage() {
       <Container maxWidth="lg" sx={{ my: 16 }}>
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 4 }}>
           <Typography variant="h4" component="h1">
-            Customers
+            Users
           </Typography>
           <Button
             variant="contained"
             startIcon={<AddIcon />}
             onClick={() => handleOpen()}
           >
-            Add Customer
+            Add User
           </Button>
         </Box>
 
@@ -180,22 +181,22 @@ export default function CustomersPage() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {customers.map((customer) => (
-                    <TableRow key={customer._id}>
-                      <TableCell>{customer.name}</TableCell>
-                      <TableCell>{customer.email}</TableCell>
-                      <TableCell>{customer.phone || "-"}</TableCell>
+                  {users.map((user) => (
+                    <TableRow key={user._id}>
+                      <TableCell>{user.name}</TableCell>
+                      <TableCell>{user.email}</TableCell>
+                      <TableCell>{user.phone || "-"}</TableCell>
                       <TableCell>
                         <IconButton
                           size="small"
-                          onClick={() => handleOpen(customer)}
+                          onClick={() => handleOpen(user)}
                           color="primary"
                         >
                           <EditIcon />
                         </IconButton>
                         <IconButton
                           size="small"
-                          onClick={() => handleDelete(customer._id)}
+                          onClick={() => handleDelete(user._id)}
                           color="error"
                         >
                           <DeleteIcon />
@@ -207,20 +208,20 @@ export default function CustomersPage() {
               </Table>
             </TableContainer>
 
-            {customers.length === 0 && (
+            {users.length === 0 && (
               <Box sx={{ textAlign: "center", py: 4 }}>
                 <Typography variant="h6" color="text.secondary">
-                  No customers found. Add your first customer!
+                  No users found. Add your first user!
                 </Typography>
               </Box>
             )}
           </CardContent>
         </Card>
 
-        {/* Add/Edit Customer Dialog */}
+        {/* Add/Edit User Dialog */}
         <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
           <DialogTitle>
-            {editingCustomer ? "Edit Customer" : "Add New Customer"}
+            {editingCustomer ? "Edit User" : "Add New User"}
           </DialogTitle>
           <form onSubmit={handleSubmit}>
             <DialogContent>

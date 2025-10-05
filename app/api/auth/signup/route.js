@@ -1,6 +1,5 @@
-import connectDB from "../../../../lib/mongodb";
-import User from "../../../../models/user";
-import Customer from "../../../../models/customer";
+import connectDB from "@/lib/mongodb";
+import User from "@/models/user";
 
 export async function POST(req) {
   try {
@@ -31,13 +30,6 @@ export async function POST(req) {
       password,
       phone,
       role: 'customer'
-    });
-
-    // Also create a customer record with the same information
-    await Customer.create({
-      name,
-      email,
-      phone
     });
 
     // Remove password from response

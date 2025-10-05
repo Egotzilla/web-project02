@@ -2,7 +2,8 @@ import mongoose from "mongoose";
 
 const reviewSchema = new mongoose.Schema(
   {
-    customerId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    cruiseId: { type: mongoose.Schema.Types.ObjectId, ref: "Cruise", required: false }, // Made optional for backward compatibility
     rating: { 
       type: Number, 
       required: true, 

@@ -17,8 +17,8 @@ import ColorModeIconDropdown from './ColorModeIconDropdown';
 import { useThemeMode } from './AppTheme';
  import { useAuth } from '../../context/AuthContext';
 import Image from 'next/image';
-import { withBasePath } from '../../lib/path';
 import Link from 'next/link';
+import { useRouter, usePathname } from 'next/navigation';
 
 const StyledToolbar = styled(Toolbar, {
   shouldForwardProp: (prop) => prop !== 'isHydrated',
@@ -44,6 +44,8 @@ export default function AppAppBar() {
   const [open, setOpen] = React.useState(false);
   const [isHydrated, setIsHydrated] = React.useState(false);
   const { user, logout, isAdmin } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
 
   // Handle hydration to prevent SSR/client mismatch
   React.useEffect(() => {
@@ -63,10 +65,17 @@ export default function AppAppBar() {
   };
 
   const scrollToSearch = () => {
-    const bookingElement = document.getElementById('booking');
-    if (bookingElement) {
-      bookingElement.scrollIntoView({ behavior: 'smooth' });
-    }
+    // Check if we're on the home page
+    if (pathname === '/') {
+      // We're on home page, just scroll to booking section
+      const bookingElement = document.getElementById('booking');
+      if (bookingElement) {
+        bookingElement.scrollIntoView({ behavior: 'smooth' });
+      }
+    } else {
+      // We're not on home page, navigate to home and then scroll
+      router.push('/#booking');
+    }   
     setOpen(false); // Close mobile drawer after clicking
   };
 
@@ -86,7 +95,7 @@ export default function AppAppBar() {
         <StyledToolbar variant="dense" disableGutters isHydrated={isHydrated}>
           <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', px: 0 }}>
             <img 
-              src={withBasePath('/favicon.ico')}
+              src="/favicon.ico"
               alt="Site Logo" 
               width={40} 
               height={40}
@@ -98,7 +107,14 @@ export default function AppAppBar() {
                 color="info" 
                 size="small"
                 component={Link}
-                href="/#booking"
+                href="/"
+              >
+                Home
+              </Button>
+              <Button 
+                variant="text" 
+                color="info" 
+                size="small"
                 onClick={scrollToSearch}
               >
                 Book Cruise
@@ -156,8 +172,6 @@ export default function AppAppBar() {
                   color="primary" 
                   variant="contained" 
                   size="small"
-                  component={Link}
-                  href="/#booking"
                   onClick={scrollToSearch}
                 >
                   Book Now

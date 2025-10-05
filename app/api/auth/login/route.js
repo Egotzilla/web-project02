@@ -1,5 +1,5 @@
-import connectDB from "../../../../lib/mongodb";
-import User from "../../../../models/user";
+import connectDB from "@/lib/mongodb";
+import User from "@/models/user";
 
 export async function POST(req) {
   try {

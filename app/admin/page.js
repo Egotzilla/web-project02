@@ -23,7 +23,8 @@ import AppTheme from "../components/AppTheme";
 import AppAppBar from "../components/AppAppBar";
 import Footer from "../components/Footer";
 import Link from "next/link";
-import { api } from "../../lib/path";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({
@@ -41,17 +42,17 @@ export default function AdminDashboard() {
 
   const fetchDashboardStats = async () => {
     try {
-      const [customersRes, bookingsRes, reviewsRes] = await Promise.all([
-        fetch(api("/api/customer")),
-        fetch(api("/api/booking")),
-        fetch(api("/api/review")),
+      const [usersRes, bookingsRes, reviewsRes] = await Promise.all([
+        fetch(`${API_BASE}/user`),
+        fetch(`${API_BASE}/booking`),
+        fetch(`${API_BASE}/review`),
       ]);
 
-      const customers = await customersRes.json();
+      const users = await usersRes.json();
       const bookings = await bookingsRes.json();
       const reviews = await reviewsRes.json();
 
-      const totalCustomers = customers.length;
+      const totalUsers = users.length;
       const totalBookings = bookings.length;
       const totalReviews = reviews.length;
       const averageRating =
@@ -71,7 +72,7 @@ export default function AdminDashboard() {
       ).length;
 
       setStats({
-        totalCustomers,
+        totalCustomers: totalUsers,
         totalBookings,
         totalReviews,
         averageRating,
@@ -85,7 +86,7 @@ export default function AdminDashboard() {
 
   const statCards = [
     {
-      title: "Total Customers",
+      title: "Total Users",
       value: stats.totalCustomers,
       icon: <PeopleIcon />,
       color: "#1976d2",
@@ -128,9 +129,9 @@ export default function AdminDashboard() {
   return (
     <AppTheme>
       <AppAppBar />
-      <Container maxWidth="lg" sx={{ my: 4 }}>
+      <Container maxWidth="lg" sx={{ my: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         {/* Header */}
-        <Box sx={{ mb: 4 }}>
+        <Box sx={{ mb: 4, paddingTop: 10, textAlign: 'center' }}>
           <Typography variant="h3" component="h1" gutterBottom>
             Admin Dashboard
           </Typography>
@@ -182,7 +183,7 @@ export default function AdminDashboard() {
           ))}
         </Grid>
 
-        <Grid container spacing={3}>
+        <Grid container spacing={3} sx={{ justifyContent: 'center' }}>
           {/* Quick Actions */}
           <Grid item xs={12} md={6}>
             <Card>
@@ -200,7 +201,7 @@ export default function AdminDashboard() {
                       href="/customers"
                       sx={{ py: 1.5 }}
                     >
-                      Manage Customers
+                      Manage Users
                     </Button>
                   </Grid>
                   <Grid item xs={12} sm={6}>

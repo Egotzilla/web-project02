@@ -76,7 +76,6 @@ export default function AdminLoginPage() {
 
   return (
     <AppTheme>
-      <AppAppBar />
       <Container maxWidth="sm" sx={{ my: 8 }}>
         <Card>
           <CardContent sx={{ p: 4 }}>
@@ -101,19 +100,6 @@ export default function AdminLoginPage() {
                 {success}
               </Alert>
             )}
-
-            {/* Default Admin Credentials Info */}
-            <Paper sx={{ p: 2, mb: 3, backgroundColor: "#f5f5f5" }}>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                <strong>Default Admin Credentials:</strong>
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Username: <code>admin</code>
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Password: <code>admin</code>
-              </Typography>
-            </Paper>
 
             <Box component="form" onSubmit={handleAdminLogin}>
               <TextField

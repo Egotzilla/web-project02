@@ -33,17 +33,20 @@ import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from "@mui/ico
 import AppTheme from "../components/AppTheme";
 import AppAppBar from "../components/AppAppBar";
 import Footer from "../components/Footer";
-import { api } from "../../lib/path";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 export default function BookingPage() {
   const [bookings, setBookings] = useState([]);
-  const [customers, setCustomers] = useState([]);
+  const [users, setUsers] = useState([]);
   const [packages, setPackages] = useState([]);
+  const [cruises, setCruises] = useState([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [editingBooking, setEditingBooking] = useState(null);
   const [formData, setFormData] = useState({
-    customerId: "",
+    userId: "",
+    cruiseId: "",
     cruiseDate: "",
     numberOfGuests: 1,
     packageType: "",
@@ -53,13 +56,14 @@ export default function BookingPage() {
 
   useEffect(() => {
     fetchBookings();
-    fetchCustomers();
+    fetchUsers();
     fetchPackages();
+    fetchCruises();
   }, []);
   
   const fetchPackages = async () => {
     try {
-      const res = await fetch(api("/api/package"));
+      const res = await fetch(`${API_BASE}/package`);
       if (!res.ok) throw new Error("Failed to fetch packages");
       const data = await res.json();
       setPackages(data);
@@ -69,26 +73,41 @@ export default function BookingPage() {
     }
   };
 
-  const fetchBookings = async () => {
-      try {
-        const res = await fetch(api("/api/booking"));
-        if (!res.ok) throw new Error("Failed to fetch bookings");
-        const data = await res.json();
-        setBookings(data);
-      } catch (err) {
-        console.error(err);
-      showSnackbar("Failed to fetch bookings", "error");
-      } finally {
-        setLoading(false);
-      }
+  const fetchCruises = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/cruise`);
+      if (!res.ok) throw new Error("Failed to fetch cruises");
+      const data = await res.json();
+      setCruises(data);
+    } catch (err) {
+      console.error(err);
+      showSnackbar("Failed to fetch cruises", "error");
+    }
   };
 
-  const fetchCustomers = async () => {
+  const fetchBookings = async () => {
     try {
-      const res = await fetch(api("/api/customer"));
-      if (!res.ok) throw new Error("Failed to fetch customers");
+      setLoading(true);
+      const res = await fetch(`${API_BASE}/booking`);
+      if (!res.ok) throw new Error("Failed to fetch bookings");
       const data = await res.json();
-      setCustomers(data);
+      console.log('Fetched bookings data:', data);
+      console.log('First booking cruise info:', data[0]?.cruiseId);
+      setBookings(data);
+    } catch (err) {
+      console.error(err);
+      showSnackbar("Failed to fetch bookings", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchUsers = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/user`);
+      if (!res.ok) throw new Error("Failed to fetch users");
+      const data = await res.json();
+      setUsers(data);
     } catch (err) {
       console.error(err);
     }
@@ -101,7 +120,8 @@ export default function BookingPage() {
   const handleOpen = (booking = null) => {
     setEditingBooking(booking);
     setFormData({
-      customerId: booking?.customerId?._id || booking?.customerId || "",
+      userId: booking?.userId?._id || booking?.userId || "",
+      cruiseId: booking?.cruiseId?._id || booking?.cruiseId || "",
       cruiseDate: booking ? new Date(booking.cruiseDate).toISOString().split('T')[0] : "",
       numberOfGuests: booking?.numberOfGuests || 1,
       packageType: booking?.packageType || (packages.length > 0 ? packages[0].name : ""),
@@ -113,44 +133,57 @@ export default function BookingPage() {
   const handleClose = () => {
     setOpen(false);
     setEditingBooking(null);
-    setFormData({ customerId: "", cruiseDate: "", numberOfGuests: 1 });
+    setFormData({
+      userId: "",
+      cruiseId: "",
+      cruiseDate: "",
+      numberOfGuests: 1,
+      packageType: "",
+      cruisingTime: ""
+    });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
     try {
-      const url = editingBooking 
-        ? api(`/api/booking/${editingBooking._id}`)
-        : api("/api/booking");
-      
+      const url = editingBooking
+        ? `${API_BASE}/booking/${editingBooking._id}`
+        : `${API_BASE}/booking`;
+
       const method = editingBooking ? "PUT" : "POST";
       
-      // Include package information in the request
-      const bookingData = {
-        ...formData,
-        packageType: formData.packageType,
-        cruisingTime: formData.cruisingTime
-      };
+      // Validate required fields
+      if (!formData.userId) {
+        throw new Error("Please select a user");
+      }
+      if (!formData.cruiseDate) {
+        throw new Error("Please select a cruise date");
+      }
+      if (!formData.numberOfGuests || formData.numberOfGuests < 1) {
+        throw new Error("Please enter a valid number of guests");
+      }
       
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(bookingData),
+        body: JSON.stringify(formData),
       });
 
       if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.error || "Failed to save booking");
+        const errorData = await res.json().catch(() => ({ error: "Failed to save booking" }));
+        throw new Error(errorData.error || "Failed to save booking");
       }
 
       showSnackbar(
         editingBooking ? "Booking updated successfully" : "Booking created successfully"
       );
+      
       handleClose();
-      fetchBookings();
+      await fetchBookings();
+      
     } catch (err) {
-      console.error(err);
+      console.error('Error in handleSubmit:', err);
       showSnackbar(err.message, "error");
     }
   };
@@ -159,7 +192,7 @@ export default function BookingPage() {
     if (!confirm("Are you sure you want to delete this booking?")) return;
 
     try {
-      const res = await fetch(api(`/api/booking/${bookingId}`), {
+      const res = await fetch(`${API_BASE}/booking/${bookingId}`, {
         method: "DELETE",
       });
 
@@ -196,15 +229,7 @@ export default function BookingPage() {
     <AppTheme>
       <AppAppBar />
       <Container maxWidth="lg" sx={{ my: 16 }}>
-        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 4 }}>
-          <Box>
-            <Typography variant="h4" component="h1">
-              Bangkok River Cruise Bookings
-            </Typography>
-            <Typography variant="subtitle1" color="text.secondary" sx={{ mt: 1 }}>
-              Book your unforgettable journey through Bangkok&apos;s iconic waterways
-            </Typography>
-          </Box>
+        <Box sx={{ display: "flex", justifyContent: "space-between", mb: 4 }}>
           <Button
             variant="contained"
             startIcon={<AddIcon />}
@@ -223,6 +248,7 @@ export default function BookingPage() {
                     <TableCell>Customer</TableCell>
                     <TableCell>Email</TableCell>
                     <TableCell>Phone</TableCell>
+                    <TableCell>Cruise</TableCell>
                     <TableCell>Cruise Date</TableCell>
                     <TableCell>Package</TableCell>
                     <TableCell>Time</TableCell>
@@ -231,11 +257,20 @@ export default function BookingPage() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-            {bookings.map((booking) => (
-                    <TableRow key={booking._id}>
-                      <TableCell>{booking.customerId?.name}</TableCell>
-                      <TableCell>{booking.customerId?.email}</TableCell>
-                      <TableCell>{booking.customerId?.phone || "-"}</TableCell>
+                  {bookings.map((booking, index) => (
+                    <TableRow key={`${booking._id}-${index}`}>
+                      <TableCell>{booking.userId?.name}</TableCell>
+                      <TableCell>{booking.userId?.email}</TableCell>
+                      <TableCell>{booking.userId?.phone || "-"}</TableCell>
+                      <TableCell>
+                        {booking.cruiseId?.title || "No cruise selected"}
+                        {console.log('Booking cruise data:', { 
+                          bookingId: booking._id, 
+                          cruiseId: booking.cruiseId,
+                          cruiseTitle: booking.cruiseId?.title,
+                          rawCruiseId: typeof booking.cruiseId
+                        })}
+                      </TableCell>
                       <TableCell>
                         {new Date(booking.cruiseDate).toLocaleDateString()}
                       </TableCell>
@@ -275,25 +310,42 @@ export default function BookingPage() {
         </Card>
 
         {/* Add/Edit Booking Dialog */}
-        <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+        <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
           <DialogTitle>
             {editingBooking ? "Edit Booking" : "New Cruise Booking"}
           </DialogTitle>
           <form onSubmit={handleSubmit}>
             <DialogContent>
-              <Grid container spacing={2} sx={{ mt: 1 }}>
-                <Grid item xs={12}>
+              <Grid container spacing={2} sx={{ mt: 1}}>
+                <Grid item xs={12} minWidth={100}>
                   <FormControl fullWidth required>
-                    <InputLabel>Customer</InputLabel>
+                    <InputLabel>User</InputLabel>
                     <Select
-                      name="customerId"
-                      value={formData.customerId}
+                      name="userId"
+                      value={formData.userId || ""}
                       onChange={handleChange}
-                      label="Customer"
+                      label="User"
                     >
-                      {customers.map((customer) => (
-                        <MenuItem key={customer._id} value={customer._id}>
-                          {customer.name} ({customer.email})
+                      {users.map((user) => (
+                        <MenuItem key={user._id} value={user._id}>
+                          {user.name} ({user.email})
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} minWidth={100}>
+                  <FormControl fullWidth required>
+                    <InputLabel>Cruise</InputLabel>
+                    <Select
+                      name="cruiseId"
+                      value={formData.cruiseId || ""}
+                      onChange={handleChange}
+                      label="Cruise"
+                    >
+                      {cruises.map((cruise) => (
+                        <MenuItem key={cruise._id} value={cruise._id}>
+                          {cruise.title} - {cruise.location}
                         </MenuItem>
                       ))}
                     </Select>
@@ -313,7 +365,7 @@ export default function BookingPage() {
                     required
                   />
                 </Grid>
-                <Grid item xs={12}>
+                <Grid item xs={12} minWidth={150}>
                   <TextField
                     fullWidth
                     label="Number of Guests"
@@ -325,18 +377,18 @@ export default function BookingPage() {
                     required
                   />
                 </Grid>
-                <Grid item xs={12}>
+                <Grid item xs={12} minWidth={150}>
                   <FormControl fullWidth required>
                     <InputLabel>Package Type</InputLabel>
                     <Select
                       name="packageType"
-                      value={formData.packageType}
+                      value={formData.packageType || ""}
                       onChange={(e) => {
                         const selectedPackage = packages.find(p => p.name === e.target.value);
                         setFormData({
                           ...formData,
                           packageType: e.target.value,
-                          cruisingTime: selectedPackage ? selectedPackage.cruisingTime : formData.cruisingTime
+                          cruisingTime: selectedPackage ? selectedPackage.cruisingTime : ""
                         });
                       }}
                       label="Package Type"
@@ -360,7 +412,7 @@ export default function BookingPage() {
                     fullWidth
                     label="Cruising Time"
                     name="cruisingTime"
-                    value={formData.cruisingTime}
+                    value={formData.cruisingTime || ""}
                     onChange={handleChange}
                     required
                     disabled

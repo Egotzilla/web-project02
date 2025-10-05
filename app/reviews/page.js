@@ -34,16 +34,19 @@ import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from "@mui/ico
 import AppTheme from "../components/AppTheme";
 import AppAppBar from "../components/AppAppBar";
 import Footer from "../components/Footer";
-import { api } from "../../lib/path";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 export default function ReviewsPage() {
   const [reviews, setReviews] = useState([]);
-  const [customers, setCustomers] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [cruises, setCruises] = useState([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [editingReview, setEditingReview] = useState(null);
   const [formData, setFormData] = useState({
-    customerId: "",
+    userId: "",
+    cruiseId: "",
     rating: 5,
     comment: "",
   });
@@ -51,12 +54,13 @@ export default function ReviewsPage() {
 
   useEffect(() => {
     fetchReviews();
-    fetchCustomers();
+    fetchUsers();
+    fetchCruises();
   }, []);
 
   const fetchReviews = async () => {
     try {
-      const res = await fetch(api("/api/review"));
+      const res = await fetch(`${API_BASE}/review`);
       if (!res.ok) throw new Error("Failed to fetch reviews");
       const data = await res.json();
       setReviews(data);
@@ -68,12 +72,23 @@ export default function ReviewsPage() {
     }
   };
 
-  const fetchCustomers = async () => {
+  const fetchUsers = async () => {
     try {
-      const res = await fetch(api("/api/customer"));
-      if (!res.ok) throw new Error("Failed to fetch customers");
+      const res = await fetch(`${API_BASE}/user`);
+      if (!res.ok) throw new Error("Failed to fetch users");
       const data = await res.json();
-      setCustomers(data);
+      setUsers(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const fetchCruises = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/cruise`);
+      if (!res.ok) throw new Error("Failed to fetch cruises");
+      const data = await res.json();
+      setCruises(data);
     } catch (err) {
       console.error(err);
     }
@@ -86,7 +101,8 @@ export default function ReviewsPage() {
   const handleOpen = (review = null) => {
     setEditingReview(review);
     setFormData({
-      customerId: review?.customerId?._id || review?.customerId || "",
+      userId: review?.userId?._id || review?.userId || "",
+      cruiseId: review?.cruiseId?._id || review?.cruiseId || "",
       rating: review?.rating || 5,
       comment: review?.comment || "",
     });
@@ -96,17 +112,17 @@ export default function ReviewsPage() {
   const handleClose = () => {
     setOpen(false);
     setEditingReview(null);
-    setFormData({ customerId: "", rating: 5, comment: "" });
+    setFormData({ userId: "", cruiseId: "", rating: 5, comment: "" });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
     try {
-      const url = editingReview 
-        ? api(`/api/review/${editingReview._id}`)
-        : api("/api/review");
-      
+      const url = editingReview
+        ? `${API_BASE}/review/${editingReview._id}`
+        : `${API_BASE}/review`;
+
       const method = editingReview ? "PUT" : "POST";
       
       const res = await fetch(url, {
@@ -135,7 +151,7 @@ export default function ReviewsPage() {
     if (!confirm("Are you sure you want to delete this review?")) return;
 
     try {
-      const res = await fetch(api(`/api/review/${reviewId}`), {
+      const res = await fetch(`${API_BASE}/review/${reviewId}`, {
         method: "DELETE",
       });
 
@@ -210,8 +226,9 @@ export default function ReviewsPage() {
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell>Customer</TableCell>
+                    <TableCell>User</TableCell>
                     <TableCell>Email</TableCell>
+                    <TableCell>Cruise/Location</TableCell>
                     <TableCell>Rating</TableCell>
                     <TableCell>Comment</TableCell>
                     <TableCell>Date</TableCell>
@@ -221,8 +238,38 @@ export default function ReviewsPage() {
                 <TableBody>
                   {reviews.map((review) => (
                     <TableRow key={review._id}>
-                      <TableCell>{review.customerId?.name}</TableCell>
-                      <TableCell>{review.customerId?.email}</TableCell>
+                      <TableCell>{review.userId?.name}</TableCell>
+                      <TableCell>{review.userId?.email}</TableCell>
+                      <TableCell>
+                        {review.cruiseId ? (
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            {review.cruiseId.images?.main && (
+                              <img 
+                                src={review.cruiseId.images.main} 
+                                alt={review.cruiseId.title}
+                                style={{ 
+                                  width: 32, 
+                                  height: 32, 
+                                  borderRadius: 4, 
+                                  objectFit: 'cover' 
+                                }}
+                              />
+                            )}
+                            <Box>
+                              <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                                {review.cruiseId.title}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                📍 {review.cruiseId.location}
+                              </Typography>
+                            </Box>
+                          </Box>
+                        ) : (
+                          <Typography variant="body2" color="text.secondary">
+                            No cruise specified
+                          </Typography>
+                        )}
+                      </TableCell>
                       <TableCell>
                         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                           {renderStars(review.rating)}
@@ -286,18 +333,38 @@ export default function ReviewsPage() {
           <form onSubmit={handleSubmit}>
             <DialogContent>
               <Grid container spacing={2} sx={{ mt: 1 }}>
-                <Grid item xs={12}>
-                  <FormControl fullWidth required>
-                    <InputLabel>Customer</InputLabel>
+                <Grid item xs={12} minWidth={120}>
+                  <FormControl fullWidth required >
+                    <InputLabel>User</InputLabel>
                     <Select
-                      name="customerId"
-                      value={formData.customerId}
+                      name="userId"
+                      value={formData.userId}
                       onChange={handleChange}
-                      label="Customer"
+                      label="User"
                     >
-                      {customers.map((customer) => (
-                        <MenuItem key={customer._id} value={customer._id}>
-                          {customer.name} ({customer.email})
+                      {users.map((user) => (
+                        <MenuItem key={user._id} value={user._id}>
+                          {user.name} ({user.email})
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} minWidth={120}>
+                  <FormControl fullWidth>
+                    <InputLabel>Cruise</InputLabel>
+                    <Select
+                      name="cruiseId"
+                      value={formData.cruiseId}
+                      onChange={handleChange}
+                      label="Cruise"
+                    >
+                      <MenuItem value="">
+                        <em>No cruise specified</em>
+                      </MenuItem>
+                      {cruises.map((cruise) => (
+                        <MenuItem key={cruise._id} value={cruise._id}>
+                          {cruise.title} - {cruise.location}
                         </MenuItem>
                       ))}
                     </Select>
