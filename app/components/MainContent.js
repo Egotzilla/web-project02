@@ -29,13 +29,13 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import StarIcon from '@mui/icons-material/Star';
 import { useAuth } from '../../context/AuthContext';
-import { api } from '../../lib/path';
+import { api, withBasePath } from '../../lib/path';
 import { useRouter } from 'next/navigation';
 import Alert from '@mui/material/Alert';
 import Link from 'next/link';
 
 const cruiseData = {
-  img: 'https://picsum.photos/800/450?random=1',
+  img: '/img/wp1.png',
   tag: 'Bangkok',
   title: 'Emerald River Cruise in Bangkok',
   rating: 4.5,
@@ -51,11 +51,11 @@ const cruiseData = {
     'Feast on a 2-hour dinner buffet, a fusion of different cuisines from all over the world'
   ],
   gallery: [
-    'https://picsum.photos/300/200?random=1',
-    'https://picsum.photos/300/200?random=2',
-    'https://picsum.photos/300/200?random=3',
-    'https://picsum.photos/300/200?random=4',
-    'https://picsum.photos/300/200?random=5',
+    '/img/wp1.png',
+    '/img/wp2.png',
+    '/img/wp3.png',
+    '/img/wp4.png',
+    '/img/wp5.png',
   ]
 };
 
@@ -206,6 +206,7 @@ export function Search() {
 }
 
 export default function MainContent() {
+  const [selectedImage, setSelectedImage] = React.useState(cruiseData.img);
   const [selectedPackage, setSelectedPackage] = React.useState(1);
   const [selectedDate, setSelectedDate] = React.useState('');
   const [numberOfGuests, setNumberOfGuests] = React.useState(1);
@@ -448,7 +449,7 @@ export default function MainContent() {
             <CardMedia
               component="img"
               alt="Bangkok River Cruise"
-              image={cruiseData.img}
+              image={withBasePath(selectedImage)}
               sx={{
                 width: '100%',
                 height: 400,
@@ -456,43 +457,28 @@ export default function MainContent() {
                 objectFit: 'cover'
               }}
             />
-            <IconButton
-              sx={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                backgroundColor: 'rgba(0,0,0,0.6)',
-                color: 'white',
-                '&:hover': {
-                  backgroundColor: 'rgba(0,0,0,0.8)',
-                }
-              }}
-            >
-              <PlayArrowIcon fontSize="large" />
-            </IconButton>
+            {/* Removed play button overlay */}
           </Box>
 
-          {/* Image Gallery */}
+          {/* Image Gallery (clean) */}
           <Box sx={{ display: 'flex', gap: 1, mb: 3, overflow: 'auto' }}>
             {cruiseData.gallery.map((img, index) => (
               <CardMedia
                 key={index}
                 component="img"
                 alt={`Gallery ${index + 1}`}
-                image={img}
+                image={withBasePath(img)}
+                onClick={() => setSelectedImage(img)}
                 sx={{
                   width: 120,
                   height: 80,
                   borderRadius: 1,
                   objectFit: 'cover',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  outline: selectedImage === img ? '2px solid orange' : 'none'
                 }}
               />
             ))}
-            <Button variant="outlined" size="small" sx={{ minWidth: 120 }}>
-              Gallery
-            </Button>
           </Box>
 
           {/* Highlights */}
@@ -521,7 +507,7 @@ export default function MainContent() {
               {/* Price */}
               <Box sx={{ textAlign: 'center', mb: 3 }}>
                 <Typography variant="h4" color="primary">
-                  {cruiseData.currency} {cruiseData.price}
+                  ฿{cruiseData.price}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                   per person

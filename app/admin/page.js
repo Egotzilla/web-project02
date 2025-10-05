@@ -9,7 +9,6 @@ import {
   Container,
   Grid,
   Typography,
-  Paper,
   Avatar,
 } from "@mui/material";
 import {
@@ -37,13 +36,11 @@ export default function AdminDashboard() {
   });
 
   useEffect(() => {
-    // Fetch dashboard statistics
     fetchDashboardStats();
   }, []);
 
   const fetchDashboardStats = async () => {
     try {
-      // Fetch all data to calculate stats
       const [customersRes, bookingsRes, reviewsRes] = await Promise.all([
         fetch(api("/api/customer")),
         fetch(api("/api/booking")),
@@ -54,22 +51,23 @@ export default function AdminDashboard() {
       const bookings = await bookingsRes.json();
       const reviews = await reviewsRes.json();
 
-      // Calculate statistics
       const totalCustomers = customers.length;
       const totalBookings = bookings.length;
       const totalReviews = reviews.length;
-      const averageRating = totalReviews > 0 
-        ? (reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews).toFixed(1)
-        : 0;
-      
-      // Calculate revenue (assuming average price per booking)
-      const averagePrice = 27.99;
+      const averageRating =
+        totalReviews > 0
+          ? (
+              reviews.reduce((sum, review) => sum + review.rating, 0) /
+              totalReviews
+            ).toFixed(1)
+          : 0;
+
+      const averagePrice = 899.99;
       const revenue = totalBookings * averagePrice;
 
-      // Count today's bookings
       const today = new Date().toDateString();
-      const todayBookings = bookings.filter(booking => 
-        new Date(booking.cruiseDate).toDateString() === today
+      const todayBookings = bookings.filter(
+        (booking) => new Date(booking.cruiseDate).toDateString() === today
       ).length;
 
       setStats({
@@ -115,7 +113,7 @@ export default function AdminDashboard() {
     },
     {
       title: "Revenue",
-      value: `$${stats.revenue.toFixed(2)}`,
+      value: `฿${stats.revenue.toFixed(2)}`,
       icon: <MoneyIcon />,
       color: "#d32f2f",
     },
@@ -126,8 +124,6 @@ export default function AdminDashboard() {
       color: "#0288d1",
     },
   ];
-
-  // Recent Activity section removed per request
 
   return (
     <AppTheme>
@@ -147,26 +143,28 @@ export default function AdminDashboard() {
         <Grid container spacing={3} sx={{ mb: 4 }}>
           {statCards.map((stat, index) => (
             <Grid item xs={12} sm={6} md={4} lg={2} key={index}>
-              <Card 
-                sx={{ 
-                  height: '100%',
-                  cursor: stat.link ? 'pointer' : 'default',
-                  transition: 'transform 0.2s',
-                  '&:hover': stat.link ? {
-                    transform: 'translateY(-4px)',
-                    boxShadow: 3
-                  } : {}
+              <Card
+                sx={{
+                  height: "100%",
+                  cursor: stat.link ? "pointer" : "default",
+                  transition: "transform 0.2s",
+                  "&:hover": stat.link
+                    ? {
+                        transform: "translateY(-4px)",
+                        boxShadow: 3,
+                      }
+                    : {},
                 }}
-                component={stat.link ? Link : 'div'}
+                component={stat.link ? Link : "div"}
                 href={stat.link}
               >
-                <CardContent sx={{ textAlign: 'center', p: 2 }}>
+                <CardContent sx={{ textAlign: "center", p: 2 }}>
                   <Avatar
                     sx={{
                       backgroundColor: stat.color,
                       width: 56,
                       height: 56,
-                      mx: 'auto',
+                      mx: "auto",
                       mb: 2,
                     }}
                   >
@@ -242,63 +240,6 @@ export default function AdminDashboard() {
                     </Button>
                   </Grid>
                 </Grid>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          {/* Recent Activity intentionally removed */}
-
-          {/* Cruise Information */}
-          <Grid item xs={12}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Cruise Information
-                </Typography>
-                <Paper sx={{ p: 3, backgroundColor: '#f5f5f5' }}>
-                  <Grid container spacing={3}>
-                    <Grid item xs={12} md={4}>
-                      <Box>
-                        <Typography variant="subtitle2" color="text.secondary">
-                          Cruise Name
-                        </Typography>
-                        <Typography variant="h6">
-                          Chao Phraya Princess Cruise
-                        </Typography>
-                      </Box>
-                    </Grid>
-                    <Grid item xs={12} md={4}>
-                      <Box>
-                        <Typography variant="subtitle2" color="text.secondary">
-                          Base Price
-                        </Typography>
-                        <Typography variant="h6">
-                          $27.99 per person
-                        </Typography>
-                      </Box>
-                    </Grid>
-                    <Grid item xs={12} md={4}>
-                      <Box>
-                        <Typography variant="subtitle2" color="text.secondary">
-                          Available Times
-                        </Typography>
-                        <Typography variant="h6">
-                          Sunset & Dinner Cruises
-                        </Typography>
-                      </Box>
-                    </Grid>
-                    <Grid item xs={12}>
-                      <Box>
-                        <Typography variant="subtitle2" color="text.secondary">
-                          Description
-                        </Typography>
-                        <Typography variant="body2">
-                          Experience the magic of Bangkok from the water. Our luxury river cruise takes you through the heart of the city, past ancient temples, modern skyscrapers, and vibrant floating markets. Savor authentic Thai cuisine, enjoy cultural performances, and create unforgettable memories on the Chao Phraya River.
-                        </Typography>
-                      </Box>
-                    </Grid>
-                  </Grid>
-                </Paper>
               </CardContent>
             </Card>
           </Grid>

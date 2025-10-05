@@ -17,6 +17,7 @@ import ColorModeIconDropdown from './ColorModeIconDropdown';
 import { useThemeMode } from './AppTheme';
  import { useAuth } from '../../context/AuthContext';
 import Image from 'next/image';
+import { withBasePath } from '../../lib/path';
 import Link from 'next/link';
 
 const StyledToolbar = styled(Toolbar, {
@@ -84,8 +85,8 @@ export default function AppAppBar() {
       <Container maxWidth="lg">
         <StyledToolbar variant="dense" disableGutters isHydrated={isHydrated}>
           <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', px: 0 }}>
-            <Image 
-              src="/favicon.ico" 
+            <img 
+              src={withBasePath('/favicon.ico')}
               alt="Site Logo" 
               width={40} 
               height={40}

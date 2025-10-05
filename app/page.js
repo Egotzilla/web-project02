@@ -23,33 +23,6 @@ export default function CruiseNavigator(props) {
       >
         <MainContent />
         {/* <Latest /> */}
-        
-        {/* Admin Access */}
-        <Box 
-          sx={{ 
-            display: 'flex', 
-            justifyContent: 'center', 
-            mt: 4,
-            pt: 4,
-            borderTop: '1px solid',
-            borderColor: 'divider'
-          }}
-        >
-          <Link href="/admin" passHref>
-            <Button 
-              variant="outlined" 
-              color="secondary"
-              size="large"
-              sx={{ 
-                textTransform: 'none',
-                px: 4,
-                py: 1.5
-              }}
-            >
-              Admin Dashboard
-            </Button>
-          </Link>
-        </Box>
       </Container>
       <Footer />
     </AppTheme>

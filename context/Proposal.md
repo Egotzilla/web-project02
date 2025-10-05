@@ -13,7 +13,7 @@
     
 
 **Project Description:**  
-This project is a simple web-based booking system for a Bangkok river cruise. Users can register as customers, make cruise bookings, and leave reviews about their experience. The system will use **Next.js** for the frontend, **Node.js/Express** for the REST API backend, and **MongoDB** for storing data. The app will be deployed on a virtual machine.
+This project is a simple web-based booking system for a Bangkok river cruise with only one cruise not multiple cruises . Users can register as customers, make cruise bookings, and leave reviews about their experience. The system will use **Next.js** for the frontend, **Node.js/Express** for the REST API backend, and **MongoDB** for storing data. The app will be deployed on a virtual machine.
 
 **Data Models:**
 
